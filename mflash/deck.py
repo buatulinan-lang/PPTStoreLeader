@@ -20,7 +20,7 @@ from .loader import STATUS_ORDER
 
 STATUS_COLOR = {"Done": GREEN, "Cancel": RED, "Pending": AMBER, "Lainnya": BLUE}
 
-VERSI = "3.2"
+VERSI = "3.3"
 
 
 def _logo(slide, path, x, y, w, h):
@@ -527,6 +527,31 @@ def _kotak_jabatan(slide, x, y, w, h, nama, jabatan, fill, warna_teks=WHITE, siz
          color=warna_teks, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.TOP)
 
 
+def _kartu_kelompok(slide, x, y, w, jabatan, nama_nama, tinggi_baris=0.24, size=9):
+    """Satu kotak berisi judul jabatan + daftar nama, supaya tidak ada SDM yang tersembunyi."""
+    h = 0.34 + max(1, len(nama_nama)) * tinggi_baris + 0.1
+    rect(slide, x, y, w, h, fill=CARD, line=LINE)
+    rect(slide, x, y, w, 0.3, fill=NAVY2, shape=MSO_SHAPE.RECTANGLE)
+    text(slide, x + 0.08, y + 0.02, w - 0.16, 0.26, str(jabatan).upper()[:24], size,
+         bold=True, color=WHITE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+    for i, nm in enumerate(nama_nama or [""]):
+        text(slide, x + 0.14, y + 0.36 + i * tinggi_baris, w - 0.28, tinggi_baris,
+             f"{i+1}. {nm}" if nm else f"{i+1}. —", size, color=INK, anchor=MSO_ANCHOR.MIDDLE)
+    return h
+
+
+def _kelompokkan(orang):
+    """Kumpulkan orang menurut jabatan, urutan kemunculan dipertahankan."""
+    urut, isi = [], {}
+    for o in orang:
+        kunci = o["jabatan"].strip().upper() or "LAINNYA"
+        if kunci not in isi:
+            urut.append(kunci)
+            isi[kunci] = []
+        isi[kunci].append(o["nama"])
+    return [(k, isi[k]) for k in urut]
+
+
 def _garis(slide, x1, y1, x2, y2):
     from pptx.util import Inches as _I
     cn = slide.shapes.add_connector(1, _I(x1), _I(y1), _I(x2), _I(y2))
@@ -587,37 +612,37 @@ def s_struktur(prs, c):
             pusat[m["tipe"]] = (x + w / 2, x, w)
         y = y_spv + 0.8
 
-    # ---- tingkat 4a: tim di bawah Supervisor Service
+    # ---- tingkat 4a: tim di bawah Supervisor Service (dikelompokkan per jabatan)
     if tim and "SERVICE" in pusat:
-        xs, x_kotak, w_spv = pusat["SERVICE"]
-        wt, ht, gap = 1.95, 0.56, 0.12
-        kolom = 2 if len(tim) > 3 else 1
-        x_kiri = min(max(0.62, xs - (kolom * wt + gap * (kolom - 1)) / 2),
-                     SW - 0.62 - (kolom * wt + gap * (kolom - 1)))
-        y_tim = y + 0.32
-        spine = x_kiri - 0.22 if kolom == 1 else xs
-        _garis(s, xs, y, xs, y_tim - 0.14)
-        for i, t in enumerate(tim[:8]):
-            baris, kol = divmod(i, kolom)
-            x = x_kiri + kol * (wt + gap)
-            yy = y_tim + baris * (ht + 0.12)
-            if yy + ht > 6.85:
-                break
-            _kotak_jabatan(s, x, yy, wt, ht, t["nama"], t["jabatan"], CARD, INK, size=9)
-            rect(s, x, yy, 0.05, ht, fill=BLUE, shape=MSO_SHAPE.RECTANGLE)
-        if kolom > 1:
-            _garis(s, x_kiri + wt / 2, y_tim - 0.14, x_kiri + kolom * wt + gap * (kolom - 1) - wt / 2,
-                   y_tim - 0.14)
-            for kol in range(kolom):
-                _garis(s, x_kiri + kol * (wt + gap) + wt / 2, y_tim - 0.14,
-                       x_kiri + kol * (wt + gap) + wt / 2, y_tim)
-        else:
-            _garis(s, xs, y_tim - 0.14, xs, y_tim)
+        xs = pusat["SERVICE"][0]
+        kelompok = _kelompokkan(tim)[:4]
+        gap = 0.18
+        # sisakan ruang kanan untuk kartu Sales Corporate bila ada
+        lebar_area = (6.9 if corporate else 12.1)
+        w_k = min(2.4, (lebar_area - gap * (len(kelompok) - 1)) / len(kelompok))
+        total = len(kelompok) * w_k + gap * (len(kelompok) - 1)
+        x_kiri = 0.62 if corporate else min(max(0.62, xs - total / 2), SW - 0.62 - total)
+        c["_tim_kanan"] = x_kiri + total
+        y_tim = y + 0.34
+        bus = y_tim - 0.16
+        _garis(s, xs, y, xs, bus)
+        if len(kelompok) > 1:
+            _garis(s, x_kiri + w_k / 2, bus, x_kiri + total - w_k / 2, bus)
+        baris_maks = int((6.9 - y_tim - 0.44) / 0.24)
+        for i, (jab, nama_nama) in enumerate(kelompok):
+            x = x_kiri + i * (w_k + gap)
+            _garis(s, x + w_k / 2, bus, x + w_k / 2, y_tim)
+            tampil = nama_nama[:max(1, baris_maks)]
+            _kartu_kelompok(s, x, y_tim, w_k, jab, tampil)
+            if len(nama_nama) > len(tampil):
+                text(s, x, y_tim + 0.34 + len(tampil) * 0.24, w_k, 0.22,
+                     f"+{len(nama_nama) - len(tampil)} lainnya", 8, color=MUTED,
+                     align=PP_ALIGN.CENTER)
 
     # ---- tingkat 4b: sales corporate di bawah 4 supervisor kanan
     if corporate:
         titik = [pusat[t][0] for t in SPV_KANAN if t in pusat]
-        y_bus = y + 0.32
+        y_bus = y + 0.34
         if titik:
             for xp in titik:
                 _garis(s, xp, y, xp, y_bus)
@@ -625,17 +650,13 @@ def s_struktur(prs, c):
                 _garis(s, min(titik), y_bus, max(titik), y_bus)
             xc = sum(titik) / len(titik)
         else:
-            xc = SW * 0.72
-        wc, hc, gap = 2.2, 0.62, 0.15
-        n = min(len(corporate), 3)
-        total = n * wc + gap * (n - 1)
-        x0 = min(max(0.62, xc - total / 2), SW - 0.62 - total)
-        y_c = y_bus + 0.3
-        _garis(s, xc, y_bus, xc, y_c - 0.1)
-        for i, o in enumerate(corporate[:3]):
-            x = x0 + i * (wc + gap)
-            _garis(s, x + wc / 2, y_c - 0.1, x + wc / 2, y_c)
-            _kotak_jabatan(s, x, y_c, wc, hc, o["nama"], o["jabatan"], BLUE, size=9.5)
+            xc = SW * 0.75
+        wc = 2.6
+        batas_kiri = c.get("_tim_kanan", 0.62) + 0.35 + wc / 2
+        xc = min(max(batas_kiri, xc), SW - 0.62 - wc / 2)
+        _garis(s, xc, y_bus, xc, y_bus + 0.16)
+        _kartu_kelompok(s, xc - wc / 2, y_bus + 0.16, wc, corporate[0]["jabatan"],
+                        [o["nama"] for o in corporate][:6])
     _web(s)
     return s
 

@@ -14,27 +14,28 @@ NAVY2 = "2E5394"
 CARD = "F6F8FC"
 GARIS = "D5DDEB"
 
-JABATAN_BAKU = [
-    "Ustadz Pembina Cabang",
-    "Store Leader",
-    "Supervisor Service",
-    "Supervisor Aksesoris",
-    "Supervisor Pengadaan",
-    "Supervisor Penyewaan",
-    "Supervisor Maintenance",
-    "Supervisor ISP",
-    "Admin",
-    "Sales",
-    "Teknisi",
-    "Sales Corporate",
-]
+JABATAN_BAKU = (
+    ["Ustadz Pembina Cabang", "Store Leader",
+     "Supervisor Service", "Supervisor Aksesoris", "Supervisor Pengadaan",
+     "Supervisor Penyewaan", "Supervisor Maintenance", "Supervisor ISP"]
+    + ["Admin"] * 3
+    + ["Sales"] * 3
+    + ["Teknisi"] * 7
+    + ["Sales Corporate"]
+)
+
+PILIHAN_JABATAN = ["Ustadz Pembina Cabang", "Store Leader",
+                   "Supervisor Service", "Supervisor Aksesoris", "Supervisor Pengadaan",
+                   "Supervisor Penyewaan", "Supervisor Maintenance", "Supervisor ISP",
+                   "Admin", "Sales", "Teknisi", "Sales Counter", "Kasir", "Sales Corporate"]
 
 PETUNJUK = [
     ("Cara pakai", ""),
     ("1", "Isi kolom NAMA LENGKAP pada sheet STRUKTUR. Kolom JABATAN sudah tersedia daftarnya."),
     ("2", "Baris yang namanya dikosongkan tetap muncul di slide sebagai kotak tanpa nama. "
           "Hapus barisnya bila posisi itu memang tidak ada di cabang Anda."),
-    ("3", "Boleh menambah baris baru di bawah, misalnya beberapa teknisi sekaligus."),
+    ("3", "Baris sudah disiapkan: 3 Admin, 3 Sales, dan 7 Teknisi. Boleh ditambah atau dikurangi "
+          "sesuai jumlah SDM di cabang — semua nama akan muncul di slide."),
     ("4", "Simpan file, lalu unggah di aplikasi pada tab Slide manual → Struktur organisasi."),
     ("", ""),
     ("Aturan penempatan otomatis", ""),
@@ -43,7 +44,8 @@ PETUNJUK = [
     ("Supervisor ...", "Berjajar sesuai urutan: Service, Aksesoris, Pengadaan, Penyewaan, "
                        "Maintenance, ISP"),
     ("Sales Corporate", "Di bawah Supervisor Pengadaan, Penyewaan, Maintenance, dan ISP"),
-    ("Jabatan lain", "Di bawah Supervisor Service (maksimal 8 kotak tampil di slide)"),
+    ("Jabatan lain", "Di bawah Supervisor Service, dikelompokkan per jabatan — satu kartu berisi "
+                     "daftar nama (Admin, Sales, Teknisi, dst.)"),
     ("", ""),
     ("Contoh pengisian", ""),
     ("Ust. Abdullah Hakim", "Ustadz Pembina Cabang"),
@@ -105,13 +107,13 @@ def buat_template_struktur() -> bytes:
 
     # daftar pilihan jabatan (sheet tersembunyi)
     wl = wb.create_sheet("DAFTAR_JABATAN")
-    for i, j in enumerate(JABATAN_BAKU, start=1):
+    for i, j in enumerate(PILIHAN_JABATAN, start=1):
         wl.cell(row=i, column=1, value=j).font = Font(name=FONT, size=10)
     wl.column_dimensions["A"].width = 30
     wl.sheet_state = "hidden"
 
     dv = DataValidation(type="list",
-                        formula1=f"=DAFTAR_JABATAN!$A$1:$A${len(JABATAN_BAKU)}",
+                        formula1=f"=DAFTAR_JABATAN!$A$1:$A${len(PILIHAN_JABATAN)}",
                         allow_blank=True, showDropDown=False)
     dv.prompt = "Pilih jabatan dari daftar, atau ketik jabatan lain."
     dv.promptTitle = "Jabatan"

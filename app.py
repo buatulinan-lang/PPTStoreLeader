@@ -41,7 +41,7 @@ except Exception as _e:  # noqa: BLE001
     st.stop()
 from mflash.metrics import n, pct, rp, tgl, periode_label
 
-VERSI = "3.2"
+VERSI = "3.3"
 JUMLAH_SLIDE = 21
 
 st.set_page_config(page_title=f"M-Flash Dashboard Builder v{VERSI}", page_icon="📊", layout="wide")
@@ -143,10 +143,10 @@ voucher_kata = st.sidebar.text_input("Kata kunci voucher", "VOUCHER")
 flat = st.sidebar.number_input("Pembanding bagi hasil flat (%)", 0.0, 100.0, 30.0, 1.0)
 
 GOAL_DEFAULT = ["GROSS PROFIT", "OMSET AKSESORIS", "TINGKAT KEPUASAN PELANGGAN", "GOOGLE ULASAN"]
-JABATAN_DEFAULT = ["Ustadz Pembina Cabang", "Store Leader",
-                   "Supervisor Service", "Supervisor Aksesoris", "Supervisor Pengadaan",
-                   "Supervisor Penyewaan", "Supervisor Maintenance", "Supervisor ISP",
-                   "Admin", "Sales", "Teknisi", "Sales Corporate"]
+JABATAN_DEFAULT = (["Ustadz Pembina Cabang", "Store Leader",
+                    "Supervisor Service", "Supervisor Aksesoris", "Supervisor Pengadaan",
+                    "Supervisor Penyewaan", "Supervisor Maintenance", "Supervisor ISP"]
+                   + ["Admin"] * 3 + ["Sales"] * 3 + ["Teknisi"] * 7 + ["Sales Corporate"])
 
 man = st.session_state.setdefault("manual", {
     "goals": [{"nama": g, "nilai": 0.0, "ket": ""} for g in GOAL_DEFAULT],
@@ -390,8 +390,9 @@ with tabs[6]:
                        "Pakai template yang diunduh di sebelah kiri.")
     st.caption("Urutan otomatis: Ustadz Pembina Cabang → Store Leader → para Supervisor "
                "(Service, Aksesoris, Pengadaan, Penyewaan, Maintenance, ISP). Admin, Sales, dan "
-               "Teknisi masuk di bawah Supervisor Service; Sales Corporate di bawah Supervisor "
-               "Pengadaan, Penyewaan, Maintenance, dan ISP.")
+               "Teknisi masuk di bawah Supervisor Service — dikelompokkan per jabatan dalam satu "
+               "kartu berisi daftar nama, jadi tidak ada SDM yang hilang. Sales Corporate berada "
+               "di bawah Supervisor Pengadaan, Penyewaan, Maintenance, dan ISP.")
     man["struktur"] = st.data_editor(
         pd.DataFrame(man["struktur"]), num_rows="dynamic", use_container_width=True, key="str_ed",
         column_config={"nama": st.column_config.TextColumn("Nama lengkap", width="large"),
