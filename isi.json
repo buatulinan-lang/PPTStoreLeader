@@ -21,35 +21,54 @@
       "ket": ""
     }
   ],
-  "catatan": [
-    "Ganti dengan catatan pekan ini",
-    "",
-    ""
-  ],
   "struktur": [
     {
-      "nama": "Nama Ustadz",
+      "nama": "",
       "jabatan": "Ustadz Pembina Cabang"
     },
     {
-      "nama": "Nama Store Leader",
+      "nama": "",
       "jabatan": "Store Leader"
     },
     {
-      "nama": "Nama Supervisor",
-      "jabatan": "Supervisor"
+      "nama": "",
+      "jabatan": "Supervisor Service"
     },
     {
-      "nama": "Nama Sales Corporate",
-      "jabatan": "Sales Corporate"
+      "nama": "",
+      "jabatan": "Supervisor Aksesoris"
     },
     {
-      "nama": "Nama Teknisi",
+      "nama": "",
+      "jabatan": "Supervisor Pengadaan"
+    },
+    {
+      "nama": "",
+      "jabatan": "Supervisor Penyewaan"
+    },
+    {
+      "nama": "",
+      "jabatan": "Supervisor Maintenance"
+    },
+    {
+      "nama": "",
+      "jabatan": "Supervisor ISP"
+    },
+    {
+      "nama": "",
+      "jabatan": "Admin"
+    },
+    {
+      "nama": "",
+      "jabatan": "Sales"
+    },
+    {
+      "nama": "",
       "jabatan": "Teknisi"
     },
     {
-      "nama": "Nama Admin",
-      "jabatan": "Admin"
+      "nama": "",
+      "jabatan": "Sales Corporate"
     }
   ],
   "komitmen": [

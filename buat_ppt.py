@@ -60,7 +60,7 @@ def main():
     c = CTX.build(dfp, dff, flt, manual, {"pengiriman_raw": n_raw})
     with open(a.out, "wb") as fh:
         fh.write(deck.build(c))
-    print(f"✅ {a.out} — 23 slide, periode {c['periode_label']}")
+    print(f"✅ {a.out} — 21 slide, periode {c['periode_label']}")
 
 
 if __name__ == "__main__":

@@ -508,11 +508,14 @@ def _tabel(slide, x, y, w, headers, rows, col_w=None, row_h=0.42, size=10.5):
 
 
 def _kotak_jabatan(slide, x, y, w, h, nama, jabatan, fill, warna_teks=WHITE, size=11):
+    """Kotak jabatan: nama di paruh atas, jabatan di paruh bawah, tidak saling menimpa."""
     rect(slide, x, y, w, h, fill=fill)
-    text(slide, x + 0.1, y + 0.12, w - 0.2, 0.3, str(nama)[:30], size, bold=True,
-         color=warna_teks, align=PP_ALIGN.CENTER)
-    text(slide, x + 0.1, y + h - 0.4, w - 0.2, 0.3, str(jabatan)[:34], size - 2,
-         color=warna_teks, align=PP_ALIGN.CENTER)
+    pad = 0.08
+    tinggi = (h - 2 * pad) / 2
+    text(slide, x + 0.08, y + pad, w - 0.16, tinggi, str(nama)[:30] or " ", size, bold=True,
+         color=warna_teks, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.BOTTOM)
+    text(slide, x + 0.08, y + pad + tinggi, w - 0.16, tinggi, str(jabatan)[:34], max(7.5, size - 2),
+         color=warna_teks, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.TOP)
 
 
 def _garis(slide, x1, y1, x2, y2):
@@ -523,78 +526,107 @@ def _garis(slide, x1, y1, x2, y2):
     return cn
 
 
+SPV_KANAN = ("PENGADAAN", "PENYEWAAN", "MAINTENANCE", "ISP")
+
+
 def s_struktur(prs, c):
     s = base_slide(prs)
     header(s, "STRUKTUR ORGANISASI", c["lingkup"].title())
     org = c["struktur"]
-    pembina, top, mid, bawah = org.get("pembina", []), org["pimpinan"], org["level2"], org["level3"]
+    pembina, top = org.get("pembina", []), org.get("pimpinan", [])
+    spv, corporate, tim = org.get("supervisor", []), org.get("corporate", []), org.get("tim", [])
 
-    if not (pembina or top or mid or bawah):
+    if not (pembina or top or spv or corporate or tim):
         note_card(s, 0.62, 2.0, 12.1, 1.2,
                   "Isi tabel struktur organisasi (nama lengkap & jabatan) di aplikasi.")
         _web(s)
         return s
 
-    y = 1.35 if pembina else 1.5
+    tengah = SW / 2
 
-    # level 0 — ustadz pembina cabang
+    # ---- tingkat 1: ustadz pembina cabang
+    y = 1.28
     if pembina:
-        h0 = 0.8
-        _kotak_jabatan(s, 5.17, y, 3.0, h0, pembina[0]["nama"], pembina[0]["jabatan"],
-                       GREEN_D, size=12)
-        _garis(s, 6.67, y + h0, 6.67, y + h0 + 0.3)
-        y += h0 + 0.3
+        h = 0.62
+        _kotak_jabatan(s, tengah - 1.55, y, 3.1, h, pembina[0]["nama"], pembina[0]["jabatan"],
+                       GREEN_D, size=11)
+        _garis(s, tengah, y + h, tengah, y + h + 0.24)
+        y += h + 0.24
 
-    # level 1 — pimpinan tertinggi cabang
-    h1 = 0.85
+    # ---- tingkat 2: store leader
     if top:
-        _kotak_jabatan(s, 5.42, y, 2.5, h1, top[0]["nama"], top[0]["jabatan"], NAVY, size=12)
-        _garis(s, 6.67, y + h1, 6.67, y + h1 + 0.32)
-        y += h1 + 0.32
+        h = 0.62
+        _kotak_jabatan(s, tengah - 1.35, y, 2.7, h, top[0]["nama"], top[0]["jabatan"], NAVY, size=11)
+        y += h
 
-    # level 2 — supervisor & sejajar
-    y2, h2 = y, 0.82
-    n2 = max(1, len(mid))
-    w2 = min(2.6, (12.1 - 0.3 * (n2 - 1)) / n2)
-    total2 = n2 * w2 + 0.3 * (n2 - 1)
-    x2 = (SW - total2) / 2
-    pusat_spv = None
-    if mid:
-        _garis(s, x2 + w2 / 2, y2 - 0.16, x2 + total2 - w2 / 2, y2 - 0.16)
-    for i, m in enumerate(mid):
-        x = x2 + i * (w2 + 0.3)
-        _kotak_jabatan(s, x, y2, w2, h2, m["nama"], m["jabatan"], NAVY2)
-        _garis(s, x + w2 / 2, y2 - 0.16, x + w2 / 2, y2)
-        if m.get("induk") and pusat_spv is None:
-            pusat_spv = x + w2 / 2
-    if mid:
-        y = y2 + h2
+    # ---- tingkat 3: para supervisor
+    pusat = {}
+    y_spv = y + 0.42
+    bus = y + 0.2
+    if spv:
+        n = len(spv)
+        w = min(2.0, (12.3 - 0.14 * (n - 1)) / n)
+        total = n * w + 0.14 * (n - 1)
+        x0 = (SW - total) / 2
+        _garis(s, tengah, y, tengah, bus)
+        if n > 1:
+            _garis(s, x0 + w / 2, bus, x0 + total - w / 2, bus)
+        for i, m in enumerate(spv):
+            x = x0 + i * (w + 0.14)
+            _garis(s, x + w / 2, bus, x + w / 2, y_spv)
+            _kotak_jabatan(s, x, y_spv, w, 0.8, m["nama"], m["jabatan"], NAVY2, size=9.5)
+            pusat[m["tipe"]] = (x + w / 2, x, w)
+        y = y_spv + 0.8
 
-    # level 3 — di bawah supervisor
-    if bawah:
-        y3 = y + 0.45
-        per_baris = 5 if len(bawah) > 8 else 4
-        w3, h3, gap = 2.3, 0.74, 0.22
-        n_atas = min(per_baris, len(bawah))
-        total_atas = n_atas * w3 + gap * (n_atas - 1)
-        x_awal = (SW - total_atas) / 2
-        bus = y3 - 0.22
-        if pusat_spv:
-            _garis(s, pusat_spv, y, pusat_spv, bus)
-        if n_atas > 1:
-            _garis(s, x_awal + w3 / 2, bus, x_awal + total_atas - w3 / 2, bus)
-        for i, b in enumerate(bawah):
-            baris, kol = divmod(i, per_baris)
-            n_baris = min(per_baris, len(bawah) - baris * per_baris)
-            total3 = n_baris * w3 + gap * (n_baris - 1)
-            x = (SW - total3) / 2 + kol * (w3 + gap)
-            yy = y3 + baris * (h3 + 0.22)
-            if yy + h3 > 6.85:
+    # ---- tingkat 4a: tim di bawah Supervisor Service
+    if tim and "SERVICE" in pusat:
+        xs, x_kotak, w_spv = pusat["SERVICE"]
+        wt, ht, gap = 1.95, 0.56, 0.12
+        kolom = 2 if len(tim) > 3 else 1
+        x_kiri = min(max(0.62, xs - (kolom * wt + gap * (kolom - 1)) / 2),
+                     SW - 0.62 - (kolom * wt + gap * (kolom - 1)))
+        y_tim = y + 0.32
+        spine = x_kiri - 0.22 if kolom == 1 else xs
+        _garis(s, xs, y, xs, y_tim - 0.14)
+        for i, t in enumerate(tim[:8]):
+            baris, kol = divmod(i, kolom)
+            x = x_kiri + kol * (wt + gap)
+            yy = y_tim + baris * (ht + 0.12)
+            if yy + ht > 6.85:
                 break
-            if baris == 0:
-                _garis(s, x + w3 / 2, bus, x + w3 / 2, yy)
-            _kotak_jabatan(s, x, yy, w3, h3, b["nama"], b["jabatan"], CARD, INK, size=10)
-            rect(s, x, yy, 0.06, h3, fill=BLUE, shape=MSO_SHAPE.RECTANGLE)
+            _kotak_jabatan(s, x, yy, wt, ht, t["nama"], t["jabatan"], CARD, INK, size=9)
+            rect(s, x, yy, 0.05, ht, fill=BLUE, shape=MSO_SHAPE.RECTANGLE)
+        if kolom > 1:
+            _garis(s, x_kiri + wt / 2, y_tim - 0.14, x_kiri + kolom * wt + gap * (kolom - 1) - wt / 2,
+                   y_tim - 0.14)
+            for kol in range(kolom):
+                _garis(s, x_kiri + kol * (wt + gap) + wt / 2, y_tim - 0.14,
+                       x_kiri + kol * (wt + gap) + wt / 2, y_tim)
+        else:
+            _garis(s, xs, y_tim - 0.14, xs, y_tim)
+
+    # ---- tingkat 4b: sales corporate di bawah 4 supervisor kanan
+    if corporate:
+        titik = [pusat[t][0] for t in SPV_KANAN if t in pusat]
+        y_bus = y + 0.32
+        if titik:
+            for xp in titik:
+                _garis(s, xp, y, xp, y_bus)
+            if len(titik) > 1:
+                _garis(s, min(titik), y_bus, max(titik), y_bus)
+            xc = sum(titik) / len(titik)
+        else:
+            xc = SW * 0.72
+        wc, hc, gap = 2.2, 0.62, 0.15
+        n = min(len(corporate), 3)
+        total = n * wc + gap * (n - 1)
+        x0 = min(max(0.62, xc - total / 2), SW - 0.62 - total)
+        y_c = y_bus + 0.3
+        _garis(s, xc, y_bus, xc, y_c - 0.1)
+        for i, o in enumerate(corporate[:3]):
+            x = x0 + i * (wc + gap)
+            _garis(s, x + wc / 2, y_c - 0.1, x + wc / 2, y_c)
+            _kotak_jabatan(s, x, y_c, wc, hc, o["nama"], o["jabatan"], BLUE, size=9.5)
     _web(s)
     return s
 
@@ -694,7 +726,6 @@ def build(c) -> bytes:
     prs.slide_width, prs.slide_height = Inches(SW), Inches(SH)
     s_cover(prs, c)
     s_goal(prs, c)
-    s_catatan(prs, c)
     s_ringkasan(prs, c)
     s_komposisi(prs, c)
     s_mom(prs, c)
@@ -718,7 +749,6 @@ def build(c) -> bytes:
     s_foto(prs, c, "MEASURE ACTIVITY", "foto_measure")
     s_foto(prs, c, "AR", "foto_ar")
     s_komitmen(prs, c)
-    s_kesimpulan(prs, c)
     s_penutup(prs, c)
     buf = io.BytesIO()
     prs.save(buf)

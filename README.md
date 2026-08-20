@@ -1,7 +1,7 @@
 # M-Flash Dashboard Builder
 
 Aplikasi untuk mengubah file mentah Accurate menjadi dashboard interaktif **dan** presentasi
-PowerPoint 23 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
+PowerPoint 21 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
 dan tata letak yang sama persis).
 
 ---
@@ -32,8 +32,8 @@ Syarat: Python 3.9 atau lebih baru.
    - `rincian_faktur_penjualan_*.xlsx` → **penjualan** per hari/bulan, breakdown kategori, voucher, bagi hasil
 2. Atur filter: tahun, bulan, kategori penjualan, dan dimensi pembanding (cabang/teknisi/admin).
 3. Telusuri dashboard di tab yang tersedia.
-4. Isi tab **Slide manual**: 4 goal, catatan pekan, tabel struktur organisasi, foto Measure Activity,
-   foto AR, tabel komitmen, dan kesimpulan.
+4. Isi tab **Slide manual**: 4 goal, tabel struktur organisasi, foto Measure Activity, foto AR,
+   dan tabel komitmen.
 5. Buka tab **⬇️ Unduh PPT** → klik *Buat PPTX* → *Unduh PPTX*.
 
 Aplikasi membaca kolom berdasarkan nama, jadi ekspor Accurate bulan depan bisa langsung dipakai
@@ -41,42 +41,54 @@ tanpa mengubah apa pun.
 
 ---
 
-## 3. Isi deck yang dihasilkan (23 slide)
+## 3. Isi deck yang dihasilkan (21 slide)
 
 | # | Slide | Sumber |
 |---|-------|--------|
 | 1 | Cover | otomatis + judul/penyaji |
 | 2 | Pencapaian Goal — 4 gauge: Gross Profit, Omset Aksesoris, Tingkat Kepuasan Pelanggan, Google Ulasan | input manual |
-| 3 | Catatan pekan ini | input manual |
-| 4 | Ringkasan kinerja | pengiriman pesanan |
-| 5 | Komposisi status pengerjaan | pengiriman pesanan |
-| 6 | Bulan berjalan vs bulan sebelumnya (dibandingkan setara) | pengiriman + faktur |
-| 7 | Rekap unit masuk harian | pengiriman pesanan |
-| 8 | Hari dengan unit masuk tertinggi | pengiriman pesanan |
-| 9 | Kinerja per cabang/teknisi | pengiriman pesanan |
-| 10–12 | Rincian Pending, Done, Cancel | pengiriman pesanan |
-| 13 | Penjualan — modal, omzet & laba | faktur penjualan |
-| 14 | Rekap penjualan harian & bulanan | faktur penjualan |
-| 15 | Penjualan per kategori (service HP, service laptop, penjualan HP, dll) | faktur penjualan |
-| 16 | Voucher | faktur penjualan |
-| 17 | Bagi hasil teknisi | faktur penjualan |
-| 18 | **Struktur organisasi** | tabel nama & jabatan |
-| 19 | **Measure Activity** | unggah foto |
-| 20 | **AR** | unggah foto |
-| 21 | Komitmen — pencapaian, komitmen, target | input manual |
-| 22 | Kesimpulan & tindak lanjut | otomatis, bisa diedit |
-| 23 | Penutup | otomatis |
+| 3 | Ringkasan kinerja | pengiriman pesanan |
+| 4 | Komposisi status pengerjaan | pengiriman pesanan |
+| 5 | Bulan berjalan vs bulan sebelumnya (dibandingkan setara) | pengiriman + faktur |
+| 6 | Rekap unit masuk harian | pengiriman pesanan |
+| 7 | Hari dengan unit masuk tertinggi | pengiriman pesanan |
+| 8 | Kinerja per cabang/teknisi | pengiriman pesanan |
+| 9–11 | Rincian Pending, Done, Cancel | pengiriman pesanan |
+| 12 | Penjualan — modal, omzet & laba | faktur penjualan |
+| 13 | Rekap penjualan harian & bulanan | faktur penjualan |
+| 14 | Penjualan per kategori (service HP, service laptop, penjualan HP, dll) | faktur penjualan |
+| 15 | Voucher | faktur penjualan |
+| 16 | Bagi hasil teknisi | faktur penjualan |
+| 17 | Struktur organisasi | tabel nama & jabatan |
+| 18 | Measure Activity | unggah foto |
+| 19 | AR | unggah foto |
+| 20 | Komitmen — pencapaian, komitmen, target | input manual |
+| 21 | Penutup | otomatis |
 
 ### Struktur organisasi
 
-Cukup isi nama lengkap dan jabatan; bagan disusun otomatis:
+Cukup isi nama lengkap dan jabatan; bagan disusun otomatis berdasarkan kata pada kolom jabatan:
 
-- **Ustadz Pembina Cabang** (jabatan mengandung kata "Ustadz" atau "Pembina") → paling atas
-- **Store Leader** (atau Store Manager / Kepala Toko / Pimpinan) → di bawah ustadz pembina
-- **Supervisor** dan **Sales Corporate** → sejajar tepat di bawahnya
-- jabatan lain → di bawah Supervisor
+```
+                 Ustadz Pembina Cabang
+                          |
+                    Store Leader
+                          |
+   ┌──────┬──────┬────────┼────────┬────────────┬──────┐
+ Service Aksesoris Pengadaan Penyewaan Maintenance  ISP     (Supervisor)
+   |                   └────────┴────────────┴──────┘
+ Admin, Sales,                    Sales Corporate
+ Teknisi, dll
+```
 
-Kalau tidak ada baris berjabatan Store Leader, baris pertama otomatis dijadikan puncak.
+- Jabatan mengandung **"Ustadz"** atau **"Pembina"** → puncak bagan
+- **"Store Leader"** (atau Store Manager / Kepala Toko / Pimpinan) → di bawahnya
+- **"Supervisor …"** → berjajar sesuai urutan Service, Aksesoris, Pengadaan, Penyewaan, Maintenance, ISP
+- **"Sales Corporate"** → di bawah Supervisor Pengadaan, Penyewaan, Maintenance, dan ISP
+- jabatan lain (Admin, Sales, Teknisi, Kasir, …) → di bawah Supervisor Service (maksimal 8 kotak)
+
+Baris yang namanya dikosongkan tetap ditampilkan sebagai kotak jabatan kosong; hapus barisnya
+bila posisi itu memang tidak ada.
 
 ## 4. Aturan perhitungan
 
@@ -111,7 +123,6 @@ python buat_ppt.py "rincian_pengiriman_pesanan.xlsx" "rincian_faktur_penjualan.x
     {"nama": "OMSET AKSESORIS", "nilai": 59.5, "ket": ""},
     {"nama": "TINGKAT KEPUASAN PELANGGAN", "nilai": 124.0, "ket": ""}
   ],
-  "catatan": ["Poin pertama", "Poin kedua", "Poin ketiga"],
   "struktur": [
     {"nama": "Nama Ustadz", "jabatan": "Ustadz Pembina Cabang"},
     {"nama": "Nama Store Leader", "jabatan": "Store Leader"},

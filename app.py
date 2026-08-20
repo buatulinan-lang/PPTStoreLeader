@@ -108,12 +108,13 @@ voucher_kata = st.sidebar.text_input("Kata kunci voucher", "VOUCHER")
 flat = st.sidebar.number_input("Pembanding bagi hasil flat (%)", 0.0, 100.0, 30.0, 1.0)
 
 GOAL_DEFAULT = ["GROSS PROFIT", "OMSET AKSESORIS", "TINGKAT KEPUASAN PELANGGAN", "GOOGLE ULASAN"]
-JABATAN_DEFAULT = ["Ustadz Pembina Cabang", "Store Leader", "Supervisor", "Sales Corporate",
-                   "Teknisi", "Admin", "Kasir"]
+JABATAN_DEFAULT = ["Ustadz Pembina Cabang", "Store Leader",
+                   "Supervisor Service", "Supervisor Aksesoris", "Supervisor Pengadaan",
+                   "Supervisor Penyewaan", "Supervisor Maintenance", "Supervisor ISP",
+                   "Admin", "Sales", "Teknisi", "Sales Corporate"]
 
 man = st.session_state.setdefault("manual", {
     "goals": [{"nama": g, "nilai": 0.0, "ket": ""} for g in GOAL_DEFAULT],
-    "catatan": ["", "", ""],
     "struktur": [{"nama": "", "jabatan": j} for j in JABATAN_DEFAULT],
     "komitmen": [{"pencapaian": "", "komitmen": "", "target": ""} for _ in range(4)],
     "foto_measure": [],
@@ -316,14 +317,11 @@ with tabs[6]:
             man["goals"][i]["ket"] = st.text_input(f"Keterangan {i+1}", man["goals"][i]["ket"], key=f"gk{i}")
 
     st.divider()
-    st.subheader("Slide 3 — Catatan pekan ini")
-    for i in range(3):
-        man["catatan"][i] = st.text_input(f"Poin {i+1}", man["catatan"][i], key=f"cat{i}")
-
-    st.divider()
     st.subheader("Slide Struktur Organisasi")
-    st.caption("Ustadz Pembina Cabang berada paling atas, lalu Store Leader. Supervisor dan "
-               "Sales Corporate sejajar di bawah Store Leader; jabatan lain di bawah Supervisor.")
+    st.caption("Urutan otomatis: Ustadz Pembina Cabang → Store Leader → para Supervisor "
+               "(Service, Aksesoris, Pengadaan, Penyewaan, Maintenance, ISP). Admin, Sales, dan "
+               "Teknisi masuk di bawah Supervisor Service; Sales Corporate di bawah Supervisor "
+               "Pengadaan, Penyewaan, Maintenance, dan ISP.")
     man["struktur"] = st.data_editor(
         pd.DataFrame(man["struktur"]), num_rows="dynamic", use_container_width=True, key="str_ed",
         column_config={"nama": st.column_config.TextColumn("Nama lengkap", width="large"),
@@ -360,12 +358,6 @@ with tabs[6]:
                        "target": st.column_config.TextColumn("Target", width="medium")}
     ).to_dict("records")
 
-    st.divider()
-    st.subheader("Slide Kesimpulan & Tindak Lanjut (otomatis, bisa diedit)")
-    kes = pd.DataFrame(c["kesimpulan"], columns=["judul", "isi"])
-    man["kesimpulan"] = st.data_editor(kes, num_rows="dynamic", use_container_width=True,
-                                       key="kes_ed").values.tolist()
-
 # --- unduh
 with tabs[7]:
     st.subheader("Unduh presentasi")
@@ -377,7 +369,7 @@ with tabs[7]:
         c2 = CTX.build(dfp, dff, flt, manual2, {"pengiriman_raw": n_raw})
         data = deck.build(c2)
         st.session_state["pptx"] = data
-        st.success(f"Selesai — {len(data)/1e6:.1f} MB, 23 slide siap diunduh.")
+        st.success(f"Selesai — {len(data)/1e6:.1f} MB, 21 slide siap diunduh.")
     if st.session_state.get("pptx"):
         st.download_button("⬇️ Unduh PPTX", st.session_state["pptx"], file_name=nama,
                            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation")

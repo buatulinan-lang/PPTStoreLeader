@@ -42,32 +42,40 @@ def _bersih_kesimpulan(rows):
 
 LEVEL0 = ("USTADZ", "PEMBINA")
 LEVEL1 = ("STORE LEADER", "STORE MANAGER", "KEPALA TOKO", "PIMPINAN")
-LEVEL2 = ("SUPERVISOR", "SPV", "SALES CORPORATE", "CORPORATE")
+URUTAN_SPV = ["SERVICE", "AKSESORIS", "PENGADAAN", "PENYEWAAN", "MAINTENANCE", "ISP"]
+SPV_KANAN = ("PENGADAAN", "PENYEWAAN", "MAINTENANCE", "ISP")
+
+
+def _tipe_spv(jabatan):
+    j = jabatan.upper()
+    for t in URUTAN_SPV:
+        if t in j:
+            return t
+    return "LAINNYA"
 
 
 def susun_struktur(rows):
-    """Bagi daftar orang menjadi 4 tingkat: ustadz pembina, pimpinan cabang,
-    sejajar supervisor, dan bawahannya."""
+    """Susun bagan: ustadz pembina → store leader → para supervisor →
+    tim service (admin/sales/teknisi) dan sales corporate."""
     orang = _bersih_rows(rows, ["nama", "jabatan"])
-    pembina, pimpinan, level2, level3 = [], [], [], []
+    pembina, pimpinan, spv, corporate, tim = [], [], [], [], []
     for o in orang:
         j = o["jabatan"].upper()
         if any(k in j for k in LEVEL0) and not pembina:
             pembina.append(o)
         elif any(k in j for k in LEVEL1) and not pimpinan:
             pimpinan.append(o)
-        elif any(k in j for k in LEVEL2):
-            o = dict(o, induk=("SUPERVISOR" in j or "SPV" in j))
-            level2.append(o)
+        elif "SUPERVISOR" in j or j.startswith("SPV"):
+            spv.append(dict(o, tipe=_tipe_spv(j)))
+        elif "CORPORATE" in j or "KORPORAT" in j:
+            corporate.append(o)
         else:
-            level3.append(o)
-    if not pimpinan and level2:
-        pimpinan.append(level2.pop(0))
-    elif not pimpinan and level3:
-        pimpinan.append(level3.pop(0))
-    if level2 and not any(m.get("induk") for m in level2):
-        level2[0]["induk"] = True
-    return dict(pembina=pembina, pimpinan=pimpinan, level2=level2, level3=level3)
+            tim.append(o)
+    spv.sort(key=lambda m: URUTAN_SPV.index(m["tipe"]) if m["tipe"] in URUTAN_SPV else 99)
+    if not pimpinan and spv:
+        pass
+    return dict(pembina=pembina, pimpinan=pimpinan, supervisor=spv,
+                corporate=corporate, tim=tim)
 
 
 def periode_teks(p, flt):
