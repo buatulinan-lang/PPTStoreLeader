@@ -6,10 +6,10 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from mflash import loader, metrics as M, context as CTX, deck
+from mflash import loader, metrics as M, context as CTX, deck, template as TPL
 from mflash.metrics import n, pct, rp, tgl, periode_label
 
-VERSI = "3.0"
+VERSI = "3.1"
 JUMLAH_SLIDE = 21
 
 st.set_page_config(page_title=f"M-Flash Dashboard Builder v{VERSI}", page_icon="📊", layout="wide")
@@ -337,6 +337,25 @@ with tabs[6]:
 
     st.divider()
     st.subheader("Slide Struktur Organisasi")
+    tcol1, tcol2 = st.columns([1, 2])
+    tcol1.download_button("📄 Unduh template Excel", TPL.buat_template_struktur(),
+                          file_name="TEMPLATE_STRUKTUR_ORGANISASI.xlsx",
+                          mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                          help="Isi nama & jabatan di Excel, lalu unggah kembali di sebelah kanan.")
+    fs = tcol2.file_uploader("Unggah template yang sudah diisi", type=["xlsx", "xls", "csv"],
+                             key="up_struktur")
+    if fs is not None:
+        try:
+            baris = TPL.baca_struktur(fs)
+        except Exception as e:
+            baris = []
+            st.error(f"File tidak terbaca: {e}")
+        if baris:
+            man["struktur"] = baris
+            st.success(f"{len(baris)} baris jabatan dimuat dari {fs.name}.")
+        elif not st.session_state.get("_str_warn"):
+            st.warning("Tidak ada baris berisi kolom JABATAN yang terbaca. "
+                       "Pakai template yang diunduh di sebelah kiri.")
     st.caption("Urutan otomatis: Ustadz Pembina Cabang → Store Leader → para Supervisor "
                "(Service, Aksesoris, Pengadaan, Penyewaan, Maintenance, ISP). Admin, Sales, dan "
                "Teknisi masuk di bawah Supervisor Service; Sales Corporate di bawah Supervisor "

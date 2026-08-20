@@ -1,4 +1,4 @@
-# M-Flash Dashboard Builder — versi 3.0 (21 slide)
+# M-Flash Dashboard Builder — versi 3.1 (21 slide)
 
 Aplikasi untuk mengubah file mentah Accurate menjadi dashboard interaktif **dan** presentasi
 PowerPoint 21 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
@@ -29,12 +29,12 @@ Syarat: Python 3.9 atau lebih baru.
 
 1. **Hentikan aplikasi lama** — tutup jendela terminal/CMD yang sedang menjalankan Streamlit
    (tekan `Ctrl + C`), lalu jalankan lagi dari folder hasil ekstrak yang baru.
-2. Pastikan sidebar bertuliskan **Versi 3.0 · 21 slide**. Kalau masih versi lama, berarti aplikasi
+2. Pastikan sidebar bertuliskan **Versi 3.1 · 21 slide**. Kalau masih versi lama, berarti aplikasi
    masih dijalankan dari folder lama.
 3. Setelah mengubah isian, klik **Buat PPTX** lagi — tombol unduh sengaja dikosongkan setiap kali
    ada perubahan supaya file lama tidak ikut terunduh.
 4. Untuk memastikan file hasil unduhan: klik kanan file → *Properties/Get Info* → bagian
-   *Comments* tertulis `M-Flash Dashboard Builder v3.0 — 21 slide`.
+   *Comments* tertulis `M-Flash Dashboard Builder v3.1 — 21 slide`.
 
 ## 2. Cara pakai
 
@@ -100,6 +100,12 @@ Cukup isi nama lengkap dan jabatan; bagan disusun otomatis berdasarkan kata pada
 
 Baris yang namanya dikosongkan tetap ditampilkan sebagai kotak jabatan kosong; hapus barisnya
 bila posisi itu memang tidak ada.
+
+**Template Excel.** Di tab *Slide manual* → *Struktur organisasi* ada tombol
+**Unduh template Excel**. File itu sudah berisi 12 baris jabatan baku, daftar pilihan jabatan,
+dan sheet PETUNJUK. Isi kolom NAMA LENGKAP, simpan, lalu unggah kembali di kolom sebelahnya —
+tabel di aplikasi langsung terisi. Lewat baris perintah gunakan
+`--struktur TEMPLATE_STRUKTUR_ORGANISASI.xlsx`.
 
 ## 4. Aturan perhitungan
 

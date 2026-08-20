@@ -18,7 +18,8 @@ def main():
     ap.add_argument("--lingkup", default="Seluruh Data")
     ap.add_argument("--judul", default="WEEKLY MEETING")
     ap.add_argument("--penyaji", default="")
-    ap.add_argument("--isi", default=None, help="file JSON berisi goal/catatan/todo/komitmen")
+    ap.add_argument("--isi", default=None, help="file JSON berisi goal/komitmen/foto")
+    ap.add_argument("--struktur", default=None, help="template Excel struktur organisasi")
     ap.add_argument("--out", default=f"WEEKLY_MEETING_MFLASH_{dt.date.today():%Y%m%d}.pptx")
     a = ap.parse_args()
 
@@ -55,6 +56,11 @@ def main():
     for k in ("foto_measure", "foto_ar"):
         manual[k] = [open(f, "rb").read() if isinstance(f, str) else f
                      for f in (manual.get(k) or [])]
+
+    if a.struktur:
+        from mflash import template as TPL
+        manual["struktur"] = TPL.baca_struktur(a.struktur)
+        print(f"  struktur   : {len(manual['struktur'])} baris jabatan")
 
     flt = dict(tahun=tahun, periode=bulan, dim=dim, lingkup=a.lingkup)
     c = CTX.build(dfp, dff, flt, manual, {"pengiriman_raw": n_raw})
