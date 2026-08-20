@@ -1,4 +1,4 @@
-# M-Flash Dashboard Builder
+# M-Flash Dashboard Builder — versi 3.0 (21 slide)
 
 Aplikasi untuk mengubah file mentah Accurate menjadi dashboard interaktif **dan** presentasi
 PowerPoint 21 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
@@ -24,6 +24,17 @@ streamlit run app.py
 Syarat: Python 3.9 atau lebih baru.
 
 ---
+
+### Kalau hasil PPT terasa "tidak berubah"
+
+1. **Hentikan aplikasi lama** — tutup jendela terminal/CMD yang sedang menjalankan Streamlit
+   (tekan `Ctrl + C`), lalu jalankan lagi dari folder hasil ekstrak yang baru.
+2. Pastikan sidebar bertuliskan **Versi 3.0 · 21 slide**. Kalau masih versi lama, berarti aplikasi
+   masih dijalankan dari folder lama.
+3. Setelah mengubah isian, klik **Buat PPTX** lagi — tombol unduh sengaja dikosongkan setiap kali
+   ada perubahan supaya file lama tidak ikut terunduh.
+4. Untuk memastikan file hasil unduhan: klik kanan file → *Properties/Get Info* → bagian
+   *Comments* tertulis `M-Flash Dashboard Builder v3.0 — 21 slide`.
 
 ## 2. Cara pakai
 

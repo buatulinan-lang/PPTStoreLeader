@@ -9,7 +9,10 @@ import plotly.graph_objects as go
 from mflash import loader, metrics as M, context as CTX, deck
 from mflash.metrics import n, pct, rp, tgl, periode_label
 
-st.set_page_config(page_title="M-Flash Dashboard Builder", page_icon="📊", layout="wide")
+VERSI = "3.0"
+JUMLAH_SLIDE = 21
+
+st.set_page_config(page_title=f"M-Flash Dashboard Builder v{VERSI}", page_icon="📊", layout="wide")
 
 NAVY, GREEN, RED, AMBER, BLUE, MUTED = "#1F3864", "#16A34A", "#C0392B", "#E18C1F", "#2E9BD6", "#6B7280"
 STATUS_COLOR = {"Done": GREEN, "Cancel": RED, "Pending": AMBER, "Lainnya": BLUE}
@@ -52,7 +55,7 @@ def _load(file_bytes, name):
 
 
 st.sidebar.title("📊 M-Flash Dashboard")
-st.sidebar.caption("Unggah file mentah → dashboard → unduh PPT")
+st.sidebar.caption(f"Versi {VERSI} · {JUMLAH_SLIDE} slide · struktur organisasi 4 tingkat")
 
 up = st.sidebar.file_uploader("File mentah (bisa 2 sekaligus)", type=["xlsx", "xls", "csv"],
                               accept_multiple_files=True)
@@ -120,8 +123,24 @@ man = st.session_state.setdefault("manual", {
     "foto_measure": [],
     "foto_ar": [],
 })
+if st.session_state.get("versi_manual") != VERSI:
+    # struktur input berubah antar versi — mulai dari bawaan versi ini
+    st.session_state.pop("manual", None)
+    st.session_state["versi_manual"] = VERSI
+    st.session_state.pop("pptx", None)
+    man = st.session_state.setdefault("manual", {
+        "goals": [{"nama": g, "nilai": 0.0, "ket": ""} for g in GOAL_DEFAULT],
+        "struktur": [{"nama": "", "jabatan": j} for j in JABATAN_DEFAULT],
+        "komitmen": [{"pencapaian": "", "komitmen": "", "target": ""} for _ in range(4)],
+        "foto_measure": [], "foto_ar": [],
+    })
 man.setdefault("foto_measure", [])
 man.setdefault("foto_ar", [])
+man.setdefault("struktur", [{"nama": "", "jabatan": j} for j in JABATAN_DEFAULT])
+man["komitmen"] = [r if set(r) >= {"pencapaian", "komitmen", "target"}
+                   else {"pencapaian": "", "komitmen": "", "target": ""}
+                   for r in man.get("komitmen", [])] or \
+                  [{"pencapaian": "", "komitmen": "", "target": ""} for _ in range(4)]
 while len(man["goals"]) < 4:
     man["goals"].append({"nama": GOAL_DEFAULT[len(man["goals"])], "nilai": 0.0, "ket": ""})
 
@@ -361,6 +380,11 @@ with tabs[6]:
 # --- unduh
 with tabs[7]:
     st.subheader("Unduh presentasi")
+    tanda = repr([VERSI, flt, judul, penyaji, voucher_kata, flat,
+                  man["goals"], man["struktur"], man["komitmen"],
+                  len(man["foto_measure"]), len(man["foto_ar"])])
+    if st.session_state.get("pptx_tanda") != tanda:
+        st.session_state.pop("pptx", None)
     st.write("Deck mengikuti template standar M-Flash: latar, logo, warna, dan tata letak yang sama.")
     nama = st.text_input("Nama file", f"WEEKLY_MEETING_MFLASH_{dt.date.today():%Y%m%d}.pptx")
     if st.button("🛠️ Buat PPTX", type="primary"):
@@ -369,7 +393,12 @@ with tabs[7]:
         c2 = CTX.build(dfp, dff, flt, manual2, {"pengiriman_raw": n_raw})
         data = deck.build(c2)
         st.session_state["pptx"] = data
-        st.success(f"Selesai — {len(data)/1e6:.1f} MB, 21 slide siap diunduh.")
+        st.session_state["pptx_tanda"] = tanda
+        st.success(f"Selesai — {len(data)/1e6:.1f} MB, {JUMLAH_SLIDE} slide siap diunduh "
+                   f"(aplikasi versi {VERSI}).")
+    if not st.session_state.get("pptx"):
+        st.info("Klik **Buat PPTX** dulu. Tombol unduh muncul setelah file selesai dibuat, "
+                "dan file lama otomatis dibuang setiap kali ada perubahan isian.")
     if st.session_state.get("pptx"):
         st.download_button("⬇️ Unduh PPTX", st.session_state["pptx"], file_name=nama,
                            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation")
