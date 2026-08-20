@@ -41,7 +41,7 @@ except Exception as _e:  # noqa: BLE001
     st.stop()
 from mflash.metrics import n, pct, rp, tgl, periode_label
 
-VERSI = "3.3"
+VERSI = "3.4"
 JUMLAH_SLIDE = 21
 
 st.set_page_config(page_title=f"M-Flash Dashboard Builder v{VERSI}", page_icon="📊", layout="wide")

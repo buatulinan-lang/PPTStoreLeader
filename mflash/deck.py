@@ -20,7 +20,7 @@ from .loader import STATUS_ORDER
 
 STATUS_COLOR = {"Done": GREEN, "Cancel": RED, "Pending": AMBER, "Lainnya": BLUE}
 
-VERSI = "3.3"
+VERSI = "3.4"
 
 
 def _logo(slide, path, x, y, w, h):
@@ -42,7 +42,8 @@ def s_cover(prs, c):
     rect(s, 4.72, 3.82, 7.4, 0.04, fill=NAVY, shape=MSO_SHAPE.RECTANGLE)
     text(s, 4.7, 4.12, 8.2, 0.4, c["lingkup"], 16, bold=True, color=INK)
     text(s, 4.7, 4.62, 8.2, 0.35, f"{n(c['r']['total'])} TRANSAKSI UNIK DIANALISIS", 14, color=MUTED)
-    text(s, 4.7, 5.62, 8.2, 0.3, f"Dibuat otomatis dari dashboard · {c['dibuat']}", 11, color=MUTED)
+    text(s, 4.7, 5.62, 8.2, 0.3,
+         f"Dibuat otomatis dari dashboard v{VERSI} · {c['dibuat']}", 11, color=MUTED)
     return s
 
 
@@ -552,12 +553,25 @@ def _kelompokkan(orang):
     return [(k, isi[k]) for k in urut]
 
 
-def _garis(slide, x1, y1, x2, y2):
-    from pptx.util import Inches as _I
-    cn = slide.shapes.add_connector(1, _I(x1), _I(y1), _I(x2), _I(y2))
-    cn.line.color.rgb = LINE
-    cn.line.width = Pt(1.25)
-    return cn
+def _garis(slide, x1, y1, x2, y2, tebal=0.018):
+    """Garis penghubung digambar sebagai persegi tipis (bukan connector).
+
+    Connector PowerPoint kerap tergeser atau terpotong saat file dibuka di aplikasi
+    yang berbeda; persegi tipis selalu tampil sama.
+    """
+    x1, x2 = sorted((float(x1), float(x2)))
+    y1, y2 = sorted((float(y1), float(y2)))
+    w = max(x2 - x1, tebal)
+    h = max(y2 - y1, tebal)
+    if x2 - x1 < tebal:          # garis tegak
+        x1 -= tebal / 2
+        w = tebal
+    if y2 - y1 < tebal:          # garis mendatar
+        y1 -= tebal / 2
+        h = tebal
+    x1 = max(0.0, min(x1, SW - w))
+    y1 = max(0.0, min(y1, SH - h))
+    return rect(slide, x1, y1, w, h, fill=LINE, shape=MSO_SHAPE.RECTANGLE)
 
 
 SPV_KANAN = ("PENGADAAN", "PENYEWAAN", "MAINTENANCE", "ISP")
