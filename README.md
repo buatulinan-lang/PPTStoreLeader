@@ -1,4 +1,4 @@
-# M-Flash Dashboard Builder — versi 3.4 (21 slide)
+# M-Flash Dashboard Builder — versi 3.5 (21 slide)
 
 Aplikasi untuk mengubah file mentah Accurate menjadi dashboard interaktif **dan** presentasi
 PowerPoint 21 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
@@ -29,14 +29,14 @@ Syarat: Python 3.9 atau lebih baru.
 
 1. **Hentikan aplikasi lama** — tutup jendela terminal/CMD yang sedang menjalankan Streamlit
    (tekan `Ctrl + C`), lalu jalankan lagi dari folder hasil ekstrak yang baru.
-2. Pastikan sidebar bertuliskan **Versi 3.4 · 21 slide**. Kalau masih versi lama, berarti aplikasi
+2. Pastikan sidebar bertuliskan **Versi 3.5 · 21 slide**. Kalau masih versi lama, berarti aplikasi
    masih dijalankan dari folder lama.
 3. Setelah mengubah isian, klik **Buat PPTX** lagi — tombol unduh sengaja dikosongkan setiap kali
    ada perubahan supaya file lama tidak ikut terunduh.
-4. Halaman **cover** file PPT memuat tulisan `Dibuat otomatis dari dashboard v3.4` —
+4. Halaman **cover** file PPT memuat tulisan `Dibuat otomatis dari dashboard v3.5` —
    cara tercepat memastikan file berasal dari versi terbaru.
 5. Untuk memastikan lewat properti file: klik kanan file → *Properties/Get Info* → bagian
-   *Comments* tertulis `M-Flash Dashboard Builder v3.4 — 21 slide`.
+   *Comments* tertulis `M-Flash Dashboard Builder v3.5 — 21 slide`.
 
 ### Menjalankan di Streamlit Cloud
 
@@ -119,24 +119,28 @@ tanpa mengubah apa pun.
 Cukup isi nama lengkap dan jabatan; bagan disusun otomatis berdasarkan kata pada kolom jabatan:
 
 ```
-                 Ustadz Pembina Cabang
-                          |
-                    Store Leader
-                          |
-   ┌──────┬──────┬────────┼────────┬────────────┬──────┐
- Service Aksesoris Pengadaan Penyewaan Maintenance  ISP     (Supervisor)
-   |                   └────────┴────────────┴──────┘
- Admin, Sales,                    Sales Corporate
- Teknisi, dll
+                     Ustadz Pembina Cabang
+                              |
+                        Store Leader
+                              |
+   ┌────────┬──────────┬──────┼───────┬─────────────┬──────┐
+ Service Aksesoris Pengadaan Penyewaan Maintenance  ISP      (Supervisor)
+   |                    └─────────┴─────────────┴──────┘
+   |                              |
+   |                       Sales Corporate                   (tingkat 4)
+   |
+ ADMIN · SALES · TEKNISI                                     (tingkat 5)
 ```
 
 - Jabatan mengandung **"Ustadz"** atau **"Pembina"** → puncak bagan
 - **"Store Leader"** (atau Store Manager / Kepala Toko / Pimpinan) → di bawahnya
 - **"Supervisor …"** → berjajar sesuai urutan Service, Aksesoris, Pengadaan, Penyewaan, Maintenance, ISP
 - **"Sales Corporate"** → di bawah Supervisor Pengadaan, Penyewaan, Maintenance, dan ISP
-- jabatan lain (Admin, Sales, Teknisi, …) → di bawah Supervisor Service, **dikelompokkan per
-  jabatan**: satu kartu ADMIN berisi daftar semua admin, satu kartu TEKNISI berisi semua teknisi,
-  dan seterusnya. Jumlah orang per jabatan bebas — tidak ada SDM yang terpotong.
+- jabatan lain (Admin, Sales, Teknisi, …) → di bawah Supervisor Service pada tingkat paling
+  bawah, **satu tingkat di bawah Sales Corporate**. Tiap jabatan jadi satu kartu berisi daftar
+  nama: kartu ADMIN memuat semua admin, kartu TEKNISI memuat semua teknisi, dan seterusnya.
+  Bila namanya banyak, daftar otomatis dipecah dua kolom agar tidak ada yang terpotong
+  (sudah diuji sampai 15 teknisi).
 
 Baris yang namanya dikosongkan tetap ditampilkan sebagai kotak jabatan kosong; hapus barisnya
 bila posisi itu memang tidak ada.
