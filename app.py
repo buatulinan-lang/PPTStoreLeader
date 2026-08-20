@@ -108,7 +108,8 @@ voucher_kata = st.sidebar.text_input("Kata kunci voucher", "VOUCHER")
 flat = st.sidebar.number_input("Pembanding bagi hasil flat (%)", 0.0, 100.0, 30.0, 1.0)
 
 GOAL_DEFAULT = ["GROSS PROFIT", "OMSET AKSESORIS", "TINGKAT KEPUASAN PELANGGAN", "GOOGLE ULASAN"]
-JABATAN_DEFAULT = ["Store Leader", "Supervisor", "Sales Corporate", "Teknisi", "Admin", "Kasir"]
+JABATAN_DEFAULT = ["Ustadz Pembina Cabang", "Store Leader", "Supervisor", "Sales Corporate",
+                   "Teknisi", "Admin", "Kasir"]
 
 man = st.session_state.setdefault("manual", {
     "goals": [{"nama": g, "nilai": 0.0, "ket": ""} for g in GOAL_DEFAULT],
@@ -321,8 +322,8 @@ with tabs[6]:
 
     st.divider()
     st.subheader("Slide Struktur Organisasi")
-    st.caption("Store Leader otomatis jadi puncak. Supervisor dan Sales Corporate sejajar di bawahnya; "
-               "jabatan lain ditempatkan di bawah Supervisor.")
+    st.caption("Ustadz Pembina Cabang berada paling atas, lalu Store Leader. Supervisor dan "
+               "Sales Corporate sejajar di bawah Store Leader; jabatan lain di bawah Supervisor.")
     man["struktur"] = st.data_editor(
         pd.DataFrame(man["struktur"]), num_rows="dynamic", use_container_width=True, key="str_ed",
         column_config={"nama": st.column_config.TextColumn("Nama lengkap", width="large"),

@@ -527,47 +527,60 @@ def s_struktur(prs, c):
     s = base_slide(prs)
     header(s, "STRUKTUR ORGANISASI", c["lingkup"].title())
     org = c["struktur"]
-    top, mid, bawah = org["pimpinan"], org["level2"], org["level3"]
+    pembina, top, mid, bawah = org.get("pembina", []), org["pimpinan"], org["level2"], org["level3"]
 
-    if not (top or mid or bawah):
+    if not (pembina or top or mid or bawah):
         note_card(s, 0.62, 2.0, 12.1, 1.2,
                   "Isi tabel struktur organisasi (nama lengkap & jabatan) di aplikasi.")
         _web(s)
         return s
 
-    # level 1 — pimpinan tertinggi
-    y1, h1 = 1.5, 0.95
+    y = 1.35 if pembina else 1.5
+
+    # level 0 — ustadz pembina cabang
+    if pembina:
+        h0 = 0.8
+        _kotak_jabatan(s, 5.17, y, 3.0, h0, pembina[0]["nama"], pembina[0]["jabatan"],
+                       GREEN_D, size=12)
+        _garis(s, 6.67, y + h0, 6.67, y + h0 + 0.3)
+        y += h0 + 0.3
+
+    # level 1 — pimpinan tertinggi cabang
+    h1 = 0.85
     if top:
-        _kotak_jabatan(s, 5.42, y1, 2.5, h1, top[0]["nama"], top[0]["jabatan"], NAVY, size=12)
-        _garis(s, 6.67, y1 + h1, 6.67, y1 + h1 + 0.35)
+        _kotak_jabatan(s, 5.42, y, 2.5, h1, top[0]["nama"], top[0]["jabatan"], NAVY, size=12)
+        _garis(s, 6.67, y + h1, 6.67, y + h1 + 0.32)
+        y += h1 + 0.32
 
     # level 2 — supervisor & sejajar
-    y2, h2 = y1 + h1 + 0.35, 0.85
+    y2, h2 = y, 0.82
     n2 = max(1, len(mid))
     w2 = min(2.6, (12.1 - 0.3 * (n2 - 1)) / n2)
     total2 = n2 * w2 + 0.3 * (n2 - 1)
     x2 = (SW - total2) / 2
     pusat_spv = None
     if mid:
-        _garis(s, x2 + w2 / 2, y2 - 0.18, x2 + total2 - w2 / 2, y2 - 0.18)
+        _garis(s, x2 + w2 / 2, y2 - 0.16, x2 + total2 - w2 / 2, y2 - 0.16)
     for i, m in enumerate(mid):
         x = x2 + i * (w2 + 0.3)
         _kotak_jabatan(s, x, y2, w2, h2, m["nama"], m["jabatan"], NAVY2)
-        _garis(s, x + w2 / 2, y2 - 0.18, x + w2 / 2, y2)
+        _garis(s, x + w2 / 2, y2 - 0.16, x + w2 / 2, y2)
         if m.get("induk") and pusat_spv is None:
             pusat_spv = x + w2 / 2
+    if mid:
+        y = y2 + h2
 
     # level 3 — di bawah supervisor
     if bawah:
-        y3 = y2 + h2 + 0.5
+        y3 = y + 0.45
         per_baris = 5 if len(bawah) > 8 else 4
-        w3, h3, gap = 2.3, 0.78, 0.22
+        w3, h3, gap = 2.3, 0.74, 0.22
         n_atas = min(per_baris, len(bawah))
         total_atas = n_atas * w3 + gap * (n_atas - 1)
         x_awal = (SW - total_atas) / 2
         bus = y3 - 0.22
         if pusat_spv:
-            _garis(s, pusat_spv, y2 + h2, pusat_spv, bus)
+            _garis(s, pusat_spv, y, pusat_spv, bus)
         if n_atas > 1:
             _garis(s, x_awal + w3 / 2, bus, x_awal + total_atas - w3 / 2, bus)
         for i, b in enumerate(bawah):
@@ -575,13 +588,13 @@ def s_struktur(prs, c):
             n_baris = min(per_baris, len(bawah) - baris * per_baris)
             total3 = n_baris * w3 + gap * (n_baris - 1)
             x = (SW - total3) / 2 + kol * (w3 + gap)
-            y = y3 + baris * (h3 + 0.28)
-            if y + h3 > 6.9:
+            yy = y3 + baris * (h3 + 0.22)
+            if yy + h3 > 6.85:
                 break
             if baris == 0:
-                _garis(s, x + w3 / 2, bus, x + w3 / 2, y)
-            _kotak_jabatan(s, x, y, w3, h3, b["nama"], b["jabatan"], CARD, INK, size=10)
-            rect(s, x, y, 0.06, h3, fill=BLUE, shape=MSO_SHAPE.RECTANGLE)
+                _garis(s, x + w3 / 2, bus, x + w3 / 2, yy)
+            _kotak_jabatan(s, x, yy, w3, h3, b["nama"], b["jabatan"], CARD, INK, size=10)
+            rect(s, x, yy, 0.06, h3, fill=BLUE, shape=MSO_SHAPE.RECTANGLE)
     _web(s)
     return s
 

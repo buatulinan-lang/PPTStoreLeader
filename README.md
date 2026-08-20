@@ -71,7 +71,8 @@ tanpa mengubah apa pun.
 
 Cukup isi nama lengkap dan jabatan; bagan disusun otomatis:
 
-- **Store Leader** (atau Store Manager / Kepala Toko / Pimpinan) → puncak bagan
+- **Ustadz Pembina Cabang** (jabatan mengandung kata "Ustadz" atau "Pembina") → paling atas
+- **Store Leader** (atau Store Manager / Kepala Toko / Pimpinan) → di bawah ustadz pembina
 - **Supervisor** dan **Sales Corporate** → sejajar tepat di bawahnya
 - jabatan lain → di bawah Supervisor
 
@@ -112,6 +113,7 @@ python buat_ppt.py "rincian_pengiriman_pesanan.xlsx" "rincian_faktur_penjualan.x
   ],
   "catatan": ["Poin pertama", "Poin kedua", "Poin ketiga"],
   "struktur": [
+    {"nama": "Nama Ustadz", "jabatan": "Ustadz Pembina Cabang"},
     {"nama": "Nama Store Leader", "jabatan": "Store Leader"},
     {"nama": "Nama Supervisor", "jabatan": "Supervisor"},
     {"nama": "Nama Sales Corporate", "jabatan": "Sales Corporate"},

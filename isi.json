@@ -28,6 +28,10 @@
   ],
   "struktur": [
     {
+      "nama": "Nama Ustadz",
+      "jabatan": "Ustadz Pembina Cabang"
+    },
+    {
       "nama": "Nama Store Leader",
       "jabatan": "Store Leader"
     },

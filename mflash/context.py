@@ -40,17 +40,21 @@ def _bersih_kesimpulan(rows):
     return out
 
 
+LEVEL0 = ("USTADZ", "PEMBINA")
 LEVEL1 = ("STORE LEADER", "STORE MANAGER", "KEPALA TOKO", "PIMPINAN")
 LEVEL2 = ("SUPERVISOR", "SPV", "SALES CORPORATE", "CORPORATE")
 
 
 def susun_struktur(rows):
-    """Bagi daftar orang menjadi 3 tingkat: pimpinan, sejajar supervisor, dan bawahannya."""
+    """Bagi daftar orang menjadi 4 tingkat: ustadz pembina, pimpinan cabang,
+    sejajar supervisor, dan bawahannya."""
     orang = _bersih_rows(rows, ["nama", "jabatan"])
-    pimpinan, level2, level3 = [], [], []
+    pembina, pimpinan, level2, level3 = [], [], [], []
     for o in orang:
         j = o["jabatan"].upper()
-        if any(k in j for k in LEVEL1) and not pimpinan:
+        if any(k in j for k in LEVEL0) and not pembina:
+            pembina.append(o)
+        elif any(k in j for k in LEVEL1) and not pimpinan:
             pimpinan.append(o)
         elif any(k in j for k in LEVEL2):
             o = dict(o, induk=("SUPERVISOR" in j or "SPV" in j))
@@ -63,7 +67,7 @@ def susun_struktur(rows):
         pimpinan.append(level3.pop(0))
     if level2 and not any(m.get("induk") for m in level2):
         level2[0]["induk"] = True
-    return dict(pimpinan=pimpinan, level2=level2, level3=level3)
+    return dict(pembina=pembina, pimpinan=pimpinan, level2=level2, level3=level3)
 
 
 def periode_teks(p, flt):
