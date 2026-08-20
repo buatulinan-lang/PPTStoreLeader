@@ -84,7 +84,8 @@ def dot(slide, x, y, d, color):
 
 def base_slide(prs, logos=True):
     s = prs.slides.add_slide(prs.slide_layouts[6])
-    s.shapes.add_picture(BG, 0, 0, Inches(SW), Inches(SH))
+    if os.path.exists(BG):
+        s.shapes.add_picture(BG, 0, 0, Inches(SW), Inches(SH))
     if logos:
         if os.path.exists(LOGO_MFLASH):
             s.shapes.add_picture(LOGO_MFLASH, Inches(12.42), Inches(0.26), Inches(0.57), Inches(0.5))

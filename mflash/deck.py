@@ -1,6 +1,8 @@
 """Pembuat file PPTX 19 slide sesuai template standar M-Flash."""
 from __future__ import annotations
 import io
+import os
+
 import pandas as pd
 from pptx import Presentation
 from pptx.util import Inches, Pt
@@ -18,6 +20,13 @@ from .loader import STATUS_ORDER
 
 STATUS_COLOR = {"Done": GREEN, "Cancel": RED, "Pending": AMBER, "Lainnya": BLUE}
 
+VERSI = "3.2"
+
+
+def _logo(slide, path, x, y, w, h):
+    if os.path.exists(path):
+        slide.shapes.add_picture(path, Inches(x), Inches(y), Inches(w), Inches(h))
+
 
 def _web(slide):
     text(slide, 5.2, 6.81, 2.94, 0.35, "www.mflash.id", 14, color=NAVY, align=PP_ALIGN.CENTER)
@@ -26,8 +35,8 @@ def _web(slide):
 # ============================================================ slide 1
 def s_cover(prs, c):
     s = base_slide(prs, logos=False)
-    s.shapes.add_picture(LOGO_MADINAH, Inches(1.35), Inches(1.75), Inches(2.25), Inches(1.5))
-    s.shapes.add_picture(LOGO_MFLASH, Inches(1.45), Inches(3.75), Inches(2.16), Inches(1.9))
+    _logo(s, LOGO_MADINAH, 1.35, 1.75, 2.25, 1.5)
+    _logo(s, LOGO_MFLASH, 1.45, 3.75, 2.16, 1.9)
     text(s, 4.7, 2.35, 8.2, 0.57, c["judul"], 32, bold=True, color=NAVY)
     text(s, 4.7, 3.05, 8.2, 0.37, c["penyaji"], 15, color=MUTED)
     rect(s, 4.72, 3.82, 7.4, 0.04, fill=NAVY, shape=MSO_SHAPE.RECTANGLE)
@@ -713,8 +722,8 @@ def s_kesimpulan(prs, c):
 def s_penutup(prs, c):
     s = base_slide(prs, logos=False)
     rect(s, 0, 0, 5.39, 7.5, fill=RGBColor(0xF1, 0xF4, 0xFA), shape=MSO_SHAPE.RECTANGLE)
-    s.shapes.add_picture(LOGO_MADINAH, Inches(1.05), Inches(1.59), Inches(2.53), Inches(1.73))
-    s.shapes.add_picture(LOGO_MFLASH, Inches(1.26), Inches(4.18), Inches(2.1), Inches(1.87))
+    _logo(s, LOGO_MADINAH, 1.05, 1.59, 2.53, 1.73)
+    _logo(s, LOGO_MFLASH, 1.26, 4.18, 2.1, 1.87)
     text(s, 5.6, 3.12, 7.4, 1.06, "JAZAKUMULLAHU KHAIRAN", 40, bold=True, color=NAVY)
     text(s, 5.6, 4.2, 7.4, 0.4, c["penyaji"], 14, color=MUTED)
     return s
@@ -750,6 +759,10 @@ def build(c) -> bytes:
     s_foto(prs, c, "AR", "foto_ar")
     s_komitmen(prs, c)
     s_penutup(prs, c)
+    cp = prs.core_properties
+    cp.title = c.get("judul", "Weekly Meeting M-Flash")
+    cp.author = c.get("penyaji", "M-Flash")
+    cp.comments = f"M-Flash Dashboard Builder v{VERSI} — {len(prs.slides.__iter__.__self__._sldIdLst)} slide"
     buf = io.BytesIO()
     prs.save(buf)
     return buf.getvalue()

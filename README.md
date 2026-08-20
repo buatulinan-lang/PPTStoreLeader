@@ -1,4 +1,4 @@
-# M-Flash Dashboard Builder — versi 3.1 (21 slide)
+# M-Flash Dashboard Builder — versi 3.2 (21 slide)
 
 Aplikasi untuk mengubah file mentah Accurate menjadi dashboard interaktif **dan** presentasi
 PowerPoint 21 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
@@ -29,12 +29,48 @@ Syarat: Python 3.9 atau lebih baru.
 
 1. **Hentikan aplikasi lama** — tutup jendela terminal/CMD yang sedang menjalankan Streamlit
    (tekan `Ctrl + C`), lalu jalankan lagi dari folder hasil ekstrak yang baru.
-2. Pastikan sidebar bertuliskan **Versi 3.1 · 21 slide**. Kalau masih versi lama, berarti aplikasi
+2. Pastikan sidebar bertuliskan **Versi 3.2 · 21 slide**. Kalau masih versi lama, berarti aplikasi
    masih dijalankan dari folder lama.
 3. Setelah mengubah isian, klik **Buat PPTX** lagi — tombol unduh sengaja dikosongkan setiap kali
    ada perubahan supaya file lama tidak ikut terunduh.
 4. Untuk memastikan file hasil unduhan: klik kanan file → *Properties/Get Info* → bagian
-   *Comments* tertulis `M-Flash Dashboard Builder v3.1 — 21 slide`.
+   *Comments* tertulis `M-Flash Dashboard Builder v3.2 — 21 slide`.
+
+### Menjalankan di Streamlit Cloud
+
+Struktur repositori harus **persis** seperti ini — `app.py` di akar, dan folder `mflash`
+serta `assets` ikut ter-upload:
+
+```
+app.py
+requirements.txt
+runtime.txt
+cek_lingkungan.py
+TEMPLATE_STRUKTUR_ORGANISASI.xlsx
+mflash/
+    __init__.py   loader.py   metrics.py   context.py
+    charts.py     theme.py    deck.py      template.py
+assets/
+    bg.jpg   logo_mflash.png   logo_madinah.png
+```
+
+Kesalahan paling sering: folder `mflash` atau `assets` tidak ikut ter-push (mengunggah lewat
+tombol *Add file → Upload files* di GitHub kadang melewatkan isi subfolder — seret seluruh
+foldernya, atau gunakan `git add -A`). Gejalanya `ImportError` pada baris
+`from mflash import ...`.
+
+Setelah mengubah isi repositori, buka **Manage app → Reboot app** agar Streamlit Cloud
+memasang ulang dependensinya.
+
+Untuk memeriksa kelengkapan di komputer sendiri:
+
+```bash
+python cek_lingkungan.py
+```
+
+Skrip itu menyebut satu per satu file yang hilang dan pustaka yang gagal dimuat. Versi 3.2 juga
+menampilkan diagnosa serupa langsung di halaman aplikasi bila impor gagal, lengkap dengan daftar
+file yang terbaca — jadi penyebabnya terlihat tanpa perlu membuka log.
 
 ## 2. Cara pakai
 

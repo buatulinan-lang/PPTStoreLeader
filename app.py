@@ -1,15 +1,47 @@
 # -*- coding: utf-8 -*-
 """M-Flash Dashboard Builder — dashboard interaktif + ekspor PPT standar weekly meeting."""
 import datetime as dt
+import os
+import sys
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from mflash import loader, metrics as M, context as CTX, deck, template as TPL
+# --- impor paket inti dengan diagnosa yang jelas bila gagal ---------------
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from mflash import loader, metrics as M, context as CTX, deck, template as TPL
+except Exception as _e:  # noqa: BLE001
+    import traceback
+    st.set_page_config(page_title="M-Flash Dashboard Builder", page_icon="📊", layout="wide")
+    st.title("Aplikasi gagal dimuat")
+    st.error(f"{type(_e).__name__}: {_e}")
+    st.write("**Isi folder aplikasi yang terbaca:**")
+    _d = os.path.dirname(os.path.abspath(__file__))
+    _isi = "\n".join(sorted(os.listdir(_d)))
+    _sub = os.path.join(_d, "mflash")
+    _isi += ("\n\nmflash/: " + ", ".join(sorted(os.listdir(_sub))) if os.path.isdir(_sub)
+             else "\n\nfolder 'mflash' TIDAK ADA")
+    st.code(_isi)
+    st.write("**Versi pustaka:**")
+    _v = {}
+    for _m in ("pandas", "numpy", "pptx", "openpyxl", "PIL", "plotly", "streamlit"):
+        try:
+            _mod = __import__(_m)
+            _v[_m] = getattr(_mod, "__version__", "terpasang")
+        except Exception as _err:  # noqa: BLE001
+            _v[_m] = f"GAGAL — {type(_err).__name__}: {_err}"
+    st.code("\n".join(f"{k:12s} {v}" for k, v in _v.items()))
+    st.write("**Rincian teknis:**")
+    st.code(traceback.format_exc())
+    st.info("Umumnya penyebabnya: folder `mflash` tidak ikut ter-upload ke repositori, "
+            "atau `requirements.txt` belum berisi python-pptx / openpyxl / pillow.")
+    st.stop()
 from mflash.metrics import n, pct, rp, tgl, periode_label
 
-VERSI = "3.1"
+VERSI = "3.2"
 JUMLAH_SLIDE = 21
 
 st.set_page_config(page_title=f"M-Flash Dashboard Builder v{VERSI}", page_icon="📊", layout="wide")
