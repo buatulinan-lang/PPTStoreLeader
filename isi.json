@@ -1,0 +1,10 @@
+{
+  "goals": [
+    {"nama": "GROSS PROFIT", "nilai": 84.31, "ket": ""},
+    {"nama": "OMSET AKSESORIS", "nilai": 59.5, "ket": ""},
+    {"nama": "TINGKAT KEPUASAN PELANGGAN", "nilai": 124.0, "ket": ""}
+  ],
+  "catatan": ["Ganti dengan catatan pekan ini", "", ""],
+  "todo": [{"goal": "", "measure": "", "todo": "", "pic": ""}],
+  "komitmen": [{"indikator": "", "target": "", "aktual": "", "ket": ""}]
+}
