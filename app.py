@@ -107,14 +107,21 @@ penyaji = st.sidebar.text_input("Penyaji / jabatan", "")
 voucher_kata = st.sidebar.text_input("Kata kunci voucher", "VOUCHER")
 flat = st.sidebar.number_input("Pembanding bagi hasil flat (%)", 0.0, 100.0, 30.0, 1.0)
 
+GOAL_DEFAULT = ["GROSS PROFIT", "OMSET AKSESORIS", "TINGKAT KEPUASAN PELANGGAN", "GOOGLE ULASAN"]
+JABATAN_DEFAULT = ["Store Leader", "Supervisor", "Sales Corporate", "Teknisi", "Admin", "Kasir"]
+
 man = st.session_state.setdefault("manual", {
-    "goals": [{"nama": "GROSS PROFIT", "nilai": 85.0, "ket": ""},
-              {"nama": "OMSET AKSESORIS", "nilai": 60.0, "ket": ""},
-              {"nama": "TINGKAT KEPUASAN PELANGGAN", "nilai": 100.0, "ket": ""}],
+    "goals": [{"nama": g, "nilai": 0.0, "ket": ""} for g in GOAL_DEFAULT],
     "catatan": ["", "", ""],
-    "todo": [{"goal": "", "measure": "", "todo": "", "pic": ""} for _ in range(4)],
-    "komitmen": [{"indikator": "", "target": "", "aktual": "", "ket": ""} for _ in range(4)],
+    "struktur": [{"nama": "", "jabatan": j} for j in JABATAN_DEFAULT],
+    "komitmen": [{"pencapaian": "", "komitmen": "", "target": ""} for _ in range(4)],
+    "foto_measure": [],
+    "foto_ar": [],
 })
+man.setdefault("foto_measure", [])
+man.setdefault("foto_ar", [])
+while len(man["goals"]) < 4:
+    man["goals"].append({"nama": GOAL_DEFAULT[len(man["goals"])], "nilai": 0.0, "ket": ""})
 
 manual = dict(judul=judul, penyaji=penyaji, voucher_kata=voucher_kata, flat=flat,
               tarif=M.DEFAULT_TARIF, **man)
@@ -298,22 +305,61 @@ with tabs[5]:
 # --- slide manual
 with tabs[6]:
     st.subheader("Slide 2 — Pencapaian Goal")
-    gcols = st.columns(3)
-    for i in range(3):
+    st.caption("Isi pencapaian dalam persen. Di bawah 85% tampil merah, 85–100% kuning, di atas 100% hijau.")
+    gcols = st.columns(4)
+    for i in range(4):
         with gcols[i]:
-            man["goals"][i]["nama"] = st.text_input(f"Nama goal {i+1}", man["goals"][i]["nama"], key=f"gn{i}")
-            man["goals"][i]["nilai"] = st.number_input(f"Pencapaian (%) {i+1}", 0.0, 500.0,
+            man["goals"][i]["nama"] = st.text_input(f"Goal {i+1}", man["goals"][i]["nama"], key=f"gn{i}")
+            man["goals"][i]["nilai"] = st.number_input(f"Pencapaian (%) {i+1}", 0.0, 1000.0,
                                                        float(man["goals"][i]["nilai"]), 0.01, key=f"gv{i}")
             man["goals"][i]["ket"] = st.text_input(f"Keterangan {i+1}", man["goals"][i]["ket"], key=f"gk{i}")
+
+    st.divider()
     st.subheader("Slide 3 — Catatan pekan ini")
     for i in range(3):
         man["catatan"][i] = st.text_input(f"Poin {i+1}", man["catatan"][i], key=f"cat{i}")
-    st.subheader("Slide Goal, Measure Activity & To Do List")
-    man["todo"] = st.data_editor(pd.DataFrame(man["todo"]), num_rows="dynamic",
-                                 use_container_width=True, key="todo_ed").to_dict("records")
+
+    st.divider()
+    st.subheader("Slide Struktur Organisasi")
+    st.caption("Store Leader otomatis jadi puncak. Supervisor dan Sales Corporate sejajar di bawahnya; "
+               "jabatan lain ditempatkan di bawah Supervisor.")
+    man["struktur"] = st.data_editor(
+        pd.DataFrame(man["struktur"]), num_rows="dynamic", use_container_width=True, key="str_ed",
+        column_config={"nama": st.column_config.TextColumn("Nama lengkap", width="large"),
+                       "jabatan": st.column_config.TextColumn("Jabatan", width="medium")}
+    ).to_dict("records")
+
+    st.divider()
+    st.subheader("Slide Measure Activity — foto")
+    fm = st.file_uploader("Unggah foto measure activity (maksimal 4)", type=["png", "jpg", "jpeg"],
+                          accept_multiple_files=True, key="up_measure")
+    if fm:
+        man["foto_measure"] = [f.getvalue() for f in fm[:4]]
+    if man["foto_measure"]:
+        st.image(man["foto_measure"], width=180)
+        if st.button("Hapus foto measure activity"):
+            man["foto_measure"] = []
+
+    st.subheader("Slide AR — foto")
+    fa = st.file_uploader("Unggah foto AR (maksimal 4)", type=["png", "jpg", "jpeg"],
+                          accept_multiple_files=True, key="up_ar")
+    if fa:
+        man["foto_ar"] = [f.getvalue() for f in fa[:4]]
+    if man["foto_ar"]:
+        st.image(man["foto_ar"], width=180)
+        if st.button("Hapus foto AR"):
+            man["foto_ar"] = []
+
+    st.divider()
     st.subheader("Slide Komitmen")
-    man["komitmen"] = st.data_editor(pd.DataFrame(man["komitmen"]), num_rows="dynamic",
-                                     use_container_width=True, key="kom_ed").to_dict("records")
+    man["komitmen"] = st.data_editor(
+        pd.DataFrame(man["komitmen"]), num_rows="dynamic", use_container_width=True, key="kom_ed",
+        column_config={"pencapaian": st.column_config.TextColumn("Pencapaian", width="large"),
+                       "komitmen": st.column_config.TextColumn("Komitmen", width="large"),
+                       "target": st.column_config.TextColumn("Target", width="medium")}
+    ).to_dict("records")
+
+    st.divider()
     st.subheader("Slide Kesimpulan & Tindak Lanjut (otomatis, bisa diedit)")
     kes = pd.DataFrame(c["kesimpulan"], columns=["judul", "isi"])
     man["kesimpulan"] = st.data_editor(kes, num_rows="dynamic", use_container_width=True,
@@ -330,7 +376,7 @@ with tabs[7]:
         c2 = CTX.build(dfp, dff, flt, manual2, {"pengiriman_raw": n_raw})
         data = deck.build(c2)
         st.session_state["pptx"] = data
-        st.success(f"Selesai — {len(data)/1e6:.1f} MB, 21 slide siap diunduh.")
+        st.success(f"Selesai — {len(data)/1e6:.1f} MB, 23 slide siap diunduh.")
     if st.session_state.get("pptx"):
         st.download_button("⬇️ Unduh PPTX", st.session_state["pptx"], file_name=nama,
                            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation")

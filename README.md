@@ -1,7 +1,7 @@
 # M-Flash Dashboard Builder
 
 Aplikasi untuk mengubah file mentah Accurate menjadi dashboard interaktif **dan** presentasi
-PowerPoint 21 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
+PowerPoint 23 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
 dan tata letak yang sama persis).
 
 ---
@@ -32,7 +32,8 @@ Syarat: Python 3.9 atau lebih baru.
    - `rincian_faktur_penjualan_*.xlsx` → **penjualan** per hari/bulan, breakdown kategori, voucher, bagi hasil
 2. Atur filter: tahun, bulan, kategori penjualan, dan dimensi pembanding (cabang/teknisi/admin).
 3. Telusuri dashboard di tab yang tersedia.
-4. Isi tab **Slide manual** (goal, catatan pekan, to do list, komitmen, kesimpulan).
+4. Isi tab **Slide manual**: 4 goal, catatan pekan, tabel struktur organisasi, foto Measure Activity,
+   foto AR, tabel komitmen, dan kesimpulan.
 5. Buka tab **⬇️ Unduh PPT** → klik *Buat PPTX* → *Unduh PPTX*.
 
 Aplikasi membaca kolom berdasarkan nama, jadi ekspor Accurate bulan depan bisa langsung dipakai
@@ -40,12 +41,12 @@ tanpa mengubah apa pun.
 
 ---
 
-## 3. Isi deck yang dihasilkan (21 slide)
+## 3. Isi deck yang dihasilkan (23 slide)
 
 | # | Slide | Sumber |
 |---|-------|--------|
 | 1 | Cover | otomatis + judul/penyaji |
-| 2 | Pencapaian Goal (3 gauge) | input manual |
+| 2 | Pencapaian Goal — 4 gauge: Gross Profit, Omset Aksesoris, Tingkat Kepuasan Pelanggan, Google Ulasan | input manual |
 | 3 | Catatan pekan ini | input manual |
 | 4 | Ringkasan kinerja | pengiriman pesanan |
 | 5 | Komposisi status pengerjaan | pengiriman pesanan |
@@ -59,12 +60,22 @@ tanpa mengubah apa pun.
 | 15 | Penjualan per kategori (service HP, service laptop, penjualan HP, dll) | faktur penjualan |
 | 16 | Voucher | faktur penjualan |
 | 17 | Bagi hasil teknisi | faktur penjualan |
-| 18 | Goal, Measure Activity & To Do List | input manual |
-| 19 | Komitmen | input manual |
-| 20 | Kesimpulan & tindak lanjut | otomatis, bisa diedit |
-| 21 | Penutup | otomatis |
+| 18 | **Struktur organisasi** | tabel nama & jabatan |
+| 19 | **Measure Activity** | unggah foto |
+| 20 | **AR** | unggah foto |
+| 21 | Komitmen — pencapaian, komitmen, target | input manual |
+| 22 | Kesimpulan & tindak lanjut | otomatis, bisa diedit |
+| 23 | Penutup | otomatis |
 
----
+### Struktur organisasi
+
+Cukup isi nama lengkap dan jabatan; bagan disusun otomatis:
+
+- **Store Leader** (atau Store Manager / Kepala Toko / Pimpinan) → puncak bagan
+- **Supervisor** dan **Sales Corporate** → sejajar tepat di bawahnya
+- jabatan lain → di bawah Supervisor
+
+Kalau tidak ada baris berjabatan Store Leader, baris pertama otomatis dijadikan puncak.
 
 ## 4. Aturan perhitungan
 
@@ -100,8 +111,15 @@ python buat_ppt.py "rincian_pengiriman_pesanan.xlsx" "rincian_faktur_penjualan.x
     {"nama": "TINGKAT KEPUASAN PELANGGAN", "nilai": 124.0, "ket": ""}
   ],
   "catatan": ["Poin pertama", "Poin kedua", "Poin ketiga"],
-  "todo": [{"goal": "", "measure": "", "todo": "", "pic": ""}],
-  "komitmen": [{"indikator": "", "target": "", "aktual": "", "ket": ""}]
+  "struktur": [
+    {"nama": "Nama Store Leader", "jabatan": "Store Leader"},
+    {"nama": "Nama Supervisor", "jabatan": "Supervisor"},
+    {"nama": "Nama Sales Corporate", "jabatan": "Sales Corporate"},
+    {"nama": "Nama Teknisi", "jabatan": "Teknisi"}
+  ],
+  "komitmen": [{"pencapaian": "", "komitmen": "", "target": ""}],
+  "foto_measure": ["foto/measure1.jpg"],
+  "foto_ar": ["foto/ar1.jpg"]
 }
 ```
 

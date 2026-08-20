@@ -42,18 +42,24 @@ def s_goal(prs, c):
     s = base_slide(prs, logos=False)
     text(s, 0.51, 0.52, 12.3, 0.8, c["goal_judul"], 40, bold=True, color=NAVY)
     text(s, 0.51, 1.35, 12.3, 0.4, c["goal_sub"], 16, color=MUTED)
-    xs = [0.6, 4.8, 9.0]
-    for i, g in enumerate(c["goals"][:3]):
-        x = xs[i]
-        rect(s, x, 2.0, 4.0, 4.55, fill=CARD, line=LINE)
-        text(s, x + 0.2, 2.28, 3.6, 0.7, g["nama"], 17, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
+    goals = c["goals"][:4]
+    ng = max(1, len(goals))
+    gap = 0.25
+    cw = (12.1 - gap * (ng - 1)) / ng
+    for i, g in enumerate(goals):
+        x = 0.62 + i * (cw + gap)
+        rect(s, x, 2.0, cw, 4.55, fill=CARD, line=LINE)
+        text(s, x + 0.12, 2.26, cw - 0.24, 0.7, g["nama"], 15 if ng > 3 else 17,
+             bold=True, color=NAVY, align=PP_ALIGN.CENTER)
         v = float(g["nilai"])
         col = RED if v < 85 else (GREEN_D if v > 100 else AMBER)
-        gauge(s, x + 0.55, 3.0, 2.9, 2.5, min(v, 100), col)
-        text(s, x + 0.2, 4.06, 3.6, 0.5, pct(v, 2), 24, bold=True, color=col, align=PP_ALIGN.CENTER)
+        gw = min(2.9, cw - 0.5)
+        gauge(s, x + (cw - gw) / 2, 3.0, gw, 2.5, min(v, 100), col)
+        text(s, x + 0.12, 4.06, cw - 0.24, 0.5, pct(v, 2), 22 if ng > 3 else 24,
+             bold=True, color=col, align=PP_ALIGN.CENTER)
         ket = g.get("ket") or (f"Aktual {pct(v,2)} · ditampilkan maks 100%" if v > 100
                                else f"Realisasi {pct(v,2)} dari target")
-        text(s, x + 0.05, 5.72, 3.9, 0.6, ket, 12, color=MUTED, align=PP_ALIGN.CENTER)
+        text(s, x, 5.72, cw, 0.6, ket, 11, color=MUTED, align=PP_ALIGN.CENTER)
     for i, (lab, col) in enumerate([("< 85%", RED), ("85% - 100%", AMBER), ("> 100%", GREEN_D)]):
         dot(s, 0.6 + i * 1.55, 6.78, 0.16, col)
         text(s, 0.84 + i * 1.55, 6.75, 1.5, 0.28, lab, 12, color=MUTED)
@@ -501,17 +507,129 @@ def _tabel(slide, x, y, w, headers, rows, col_w=None, row_h=0.42, size=10.5):
     return yy
 
 
-def s_goal_todo(prs, c):
+def _kotak_jabatan(slide, x, y, w, h, nama, jabatan, fill, warna_teks=WHITE, size=11):
+    rect(slide, x, y, w, h, fill=fill)
+    text(slide, x + 0.1, y + 0.12, w - 0.2, 0.3, str(nama)[:30], size, bold=True,
+         color=warna_teks, align=PP_ALIGN.CENTER)
+    text(slide, x + 0.1, y + h - 0.4, w - 0.2, 0.3, str(jabatan)[:34], size - 2,
+         color=warna_teks, align=PP_ALIGN.CENTER)
+
+
+def _garis(slide, x1, y1, x2, y2):
+    from pptx.util import Inches as _I
+    cn = slide.shapes.add_connector(1, _I(x1), _I(y1), _I(x2), _I(y2))
+    cn.line.color.rgb = LINE
+    cn.line.width = Pt(1.25)
+    return cn
+
+
+def s_struktur(prs, c):
     s = base_slide(prs)
-    text(s, 0.51, 0.52, 11.18, 0.77, "1. GOAL, MEASURE ACTIVITY & TO DO LIST", 40, bold=True, color=NAVY)
-    rows = [[r.get("goal", ""), r.get("measure", ""), r.get("todo", ""), r.get("pic", "")]
-            for r in c["todo"] if any(str(v).strip() for v in r.values())]
-    if rows:
-        rect(s, 0.62, 1.55, 12.1, min(4.9, 0.5 + 0.5 * len(rows)), fill=CARD, line=LINE)
-        _tabel(s, 0.72, 1.68, 11.9, ["GOAL", "MEASURE ACTIVITY", "TO DO LIST", "PIC"], rows,
-               col_w=[3.2, 3.2, 4.0, 1.5], row_h=0.5, size=10.5)
+    header(s, "STRUKTUR ORGANISASI", c["lingkup"].title())
+    org = c["struktur"]
+    top, mid, bawah = org["pimpinan"], org["level2"], org["level3"]
+
+    if not (top or mid or bawah):
+        note_card(s, 0.62, 2.0, 12.1, 1.2,
+                  "Isi tabel struktur organisasi (nama lengkap & jabatan) di aplikasi.")
+        _web(s)
+        return s
+
+    # level 1 — pimpinan tertinggi
+    y1, h1 = 1.5, 0.95
+    if top:
+        _kotak_jabatan(s, 5.42, y1, 2.5, h1, top[0]["nama"], top[0]["jabatan"], NAVY, size=12)
+        _garis(s, 6.67, y1 + h1, 6.67, y1 + h1 + 0.35)
+
+    # level 2 — supervisor & sejajar
+    y2, h2 = y1 + h1 + 0.35, 0.85
+    n2 = max(1, len(mid))
+    w2 = min(2.6, (12.1 - 0.3 * (n2 - 1)) / n2)
+    total2 = n2 * w2 + 0.3 * (n2 - 1)
+    x2 = (SW - total2) / 2
+    pusat_spv = None
+    if mid:
+        _garis(s, x2 + w2 / 2, y2 - 0.18, x2 + total2 - w2 / 2, y2 - 0.18)
+    for i, m in enumerate(mid):
+        x = x2 + i * (w2 + 0.3)
+        _kotak_jabatan(s, x, y2, w2, h2, m["nama"], m["jabatan"], NAVY2)
+        _garis(s, x + w2 / 2, y2 - 0.18, x + w2 / 2, y2)
+        if m.get("induk") and pusat_spv is None:
+            pusat_spv = x + w2 / 2
+
+    # level 3 — di bawah supervisor
+    if bawah:
+        y3 = y2 + h2 + 0.5
+        per_baris = 5 if len(bawah) > 8 else 4
+        w3, h3, gap = 2.3, 0.78, 0.22
+        n_atas = min(per_baris, len(bawah))
+        total_atas = n_atas * w3 + gap * (n_atas - 1)
+        x_awal = (SW - total_atas) / 2
+        bus = y3 - 0.22
+        if pusat_spv:
+            _garis(s, pusat_spv, y2 + h2, pusat_spv, bus)
+        if n_atas > 1:
+            _garis(s, x_awal + w3 / 2, bus, x_awal + total_atas - w3 / 2, bus)
+        for i, b in enumerate(bawah):
+            baris, kol = divmod(i, per_baris)
+            n_baris = min(per_baris, len(bawah) - baris * per_baris)
+            total3 = n_baris * w3 + gap * (n_baris - 1)
+            x = (SW - total3) / 2 + kol * (w3 + gap)
+            y = y3 + baris * (h3 + 0.28)
+            if y + h3 > 6.9:
+                break
+            if baris == 0:
+                _garis(s, x + w3 / 2, bus, x + w3 / 2, y)
+            _kotak_jabatan(s, x, y, w3, h3, b["nama"], b["jabatan"], CARD, INK, size=10)
+            rect(s, x, y, 0.06, h3, fill=BLUE, shape=MSO_SHAPE.RECTANGLE)
     _web(s)
     return s
+
+
+def s_foto(prs, c, judul, kunci, subjudul=""):
+    s = base_slide(prs)
+    header(s, judul, subjudul or c["periode_label"])
+    fotos = c.get(kunci) or []
+    area = (0.62, 1.5, 12.1, 5.3)
+    if not fotos:
+        rect(s, *area, fill=CARD, line=LINE)
+        text(s, area[0], area[1] + area[3] / 2 - 0.2, area[2], 0.4,
+             "Unggah foto di aplikasi untuk mengisi slide ini", 13, color=MUTED,
+             align=PP_ALIGN.CENTER)
+        footer(s, c["sumber"])
+        return s
+    n_f = min(len(fotos), 4)
+    kolom = 1 if n_f == 1 else 2
+    baris = 1 if n_f <= 2 else 2
+    gw = (area[2] - 0.3 * (kolom - 1)) / kolom
+    gh = (area[3] - 0.3 * (baris - 1)) / baris
+    for i, f in enumerate(fotos[:4]):
+        r_, k_ = divmod(i, kolom)
+        _pasang_foto(s, f, area[0] + k_ * (gw + 0.3), area[1] + r_ * (gh + 0.3), gw, gh)
+    footer(s, c["sumber"])
+    return s
+
+
+def _pasang_foto(slide, foto, x, y, w, h):
+    """Tempel foto proporsional di tengah kotak, dengan bingkai."""
+    import io as _io
+    from PIL import Image as _Image
+    rect(slide, x, y, w, h, fill=CARD, line=LINE)
+    src = _io.BytesIO(foto) if isinstance(foto, (bytes, bytearray)) else foto
+    try:
+        im = _Image.open(src)
+        rasio = im.width / im.height
+    except Exception:
+        return
+    if isinstance(src, _io.BytesIO):
+        src.seek(0)
+    pw, ph = w - 0.16, h - 0.16
+    if rasio > pw / ph:
+        fw, fh = pw, pw / rasio
+    else:
+        fh, fw = ph, ph * rasio
+    slide.shapes.add_picture(src, Inches(x + (w - fw) / 2), Inches(y + (h - fh) / 2),
+                             Inches(fw), Inches(fh))
 
 
 # ============================================================ slide 17
@@ -519,12 +637,12 @@ def s_komitmen(prs, c):
     s = base_slide(prs)
     text(s, 0.51, 0.52, 11.18, 0.77, "2. KOMITMEN", 40, bold=True, color=NAVY)
     text(s, 0.92, 1.37, 8.21, 0.4, c["komitmen_intro"], 16, color=INK)
-    rows = [[r.get("indikator", ""), r.get("target", ""), r.get("aktual", ""), r.get("ket", "")]
+    rows = [[r.get("pencapaian", ""), r.get("komitmen", ""), r.get("target", "")]
             for r in c["komitmen"] if any(str(v).strip() for v in r.values())]
     if rows:
-        rect(s, 0.65, 1.92, 12.02, min(4.8, 0.55 + 0.5 * len(rows)), fill=CARD, line=LINE)
-        _tabel(s, 0.75, 2.05, 11.8, ["INDIKATOR", "TARGET PEKAN DEPAN", "AKTUAL PEKAN INI", "KETERANGAN"],
-               rows, col_w=[3.4, 2.8, 2.8, 2.8], row_h=0.5)
+        rect(s, 0.65, 1.92, 12.02, min(4.8, 0.55 + 0.52 * len(rows)), fill=CARD, line=LINE)
+        _tabel(s, 0.75, 2.05, 11.8, ["PENCAPAIAN", "KOMITMEN", "TARGET"],
+               rows, col_w=[4.0, 4.4, 3.4], row_h=0.52)
     _web(s)
     return s
 
@@ -583,7 +701,9 @@ def build(c) -> bytes:
     s_jual_kategori(prs, c)
     s_voucher(prs, c)
     s_bagi_hasil(prs, c)
-    s_goal_todo(prs, c)
+    s_struktur(prs, c)
+    s_foto(prs, c, "MEASURE ACTIVITY", "foto_measure")
+    s_foto(prs, c, "AR", "foto_ar")
     s_komitmen(prs, c)
     s_kesimpulan(prs, c)
     s_penutup(prs, c)

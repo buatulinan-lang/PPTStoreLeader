@@ -45,18 +45,22 @@ def main():
 
     manual = dict(judul=a.judul, penyaji=a.penyaji, tarif=M.DEFAULT_TARIF, flat=30.0,
                   voucher_kata="VOUCHER",
-                  goals=[{"nama": "GROSS PROFIT", "nilai": 0.0, "ket": ""},
-                         {"nama": "OMSET AKSESORIS", "nilai": 0.0, "ket": ""},
-                         {"nama": "KEPUASAN PELANGGAN", "nilai": 0.0, "ket": ""}],
-                  catatan=[], todo=[], komitmen=[])
+                  goals=[{"nama": g, "nilai": 0.0, "ket": ""} for g in
+                         ("GROSS PROFIT", "OMSET AKSESORIS", "TINGKAT KEPUASAN PELANGGAN",
+                          "GOOGLE ULASAN")],
+                  catatan=[], struktur=[], komitmen=[], foto_measure=[], foto_ar=[])
     if a.isi:
         manual.update(json.load(open(a.isi, encoding="utf-8")))
+    # foto boleh ditulis sebagai path file di isi.json
+    for k in ("foto_measure", "foto_ar"):
+        manual[k] = [open(f, "rb").read() if isinstance(f, str) else f
+                     for f in (manual.get(k) or [])]
 
     flt = dict(tahun=tahun, periode=bulan, dim=dim, lingkup=a.lingkup)
     c = CTX.build(dfp, dff, flt, manual, {"pengiriman_raw": n_raw})
     with open(a.out, "wb") as fh:
         fh.write(deck.build(c))
-    print(f"✅ {a.out} — 21 slide, periode {c['periode_label']}")
+    print(f"✅ {a.out} — 23 slide, periode {c['periode_label']}")
 
 
 if __name__ == "__main__":

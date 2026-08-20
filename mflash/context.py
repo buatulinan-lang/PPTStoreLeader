@@ -40,6 +40,32 @@ def _bersih_kesimpulan(rows):
     return out
 
 
+LEVEL1 = ("STORE LEADER", "STORE MANAGER", "KEPALA TOKO", "PIMPINAN")
+LEVEL2 = ("SUPERVISOR", "SPV", "SALES CORPORATE", "CORPORATE")
+
+
+def susun_struktur(rows):
+    """Bagi daftar orang menjadi 3 tingkat: pimpinan, sejajar supervisor, dan bawahannya."""
+    orang = _bersih_rows(rows, ["nama", "jabatan"])
+    pimpinan, level2, level3 = [], [], []
+    for o in orang:
+        j = o["jabatan"].upper()
+        if any(k in j for k in LEVEL1) and not pimpinan:
+            pimpinan.append(o)
+        elif any(k in j for k in LEVEL2):
+            o = dict(o, induk=("SUPERVISOR" in j or "SPV" in j))
+            level2.append(o)
+        else:
+            level3.append(o)
+    if not pimpinan and level2:
+        pimpinan.append(level2.pop(0))
+    elif not pimpinan and level3:
+        pimpinan.append(level3.pop(0))
+    if level2 and not any(m.get("induk") for m in level2):
+        level2[0]["induk"] = True
+    return dict(pimpinan=pimpinan, level2=level2, level3=level3)
+
+
 def periode_teks(p, flt):
     if not len(p):
         return "Tidak ada data"
@@ -109,7 +135,10 @@ def build(dfp, dff, flt, manual, raw_counts=None):
         catatan_judul=manual.get("catatan_judul", "CATATAN PEKAN INI"),
         catatan=[_bersih(x) for x in manual.get("catatan", []) if _bersih(x)],
         todo=_bersih_rows(manual.get("todo"), ["goal", "measure", "todo", "pic"]),
-        komitmen=_bersih_rows(manual.get("komitmen"), ["indikator", "target", "aktual", "ket"]),
+        komitmen=_bersih_rows(manual.get("komitmen"), ["pencapaian", "komitmen", "target"]),
+        struktur=susun_struktur(manual.get("struktur")),
+        foto_measure=[f for f in (manual.get("foto_measure") or []) if f],
+        foto_ar=[f for f in (manual.get("foto_ar") or []) if f],
         komitmen_intro=manual.get("komitmen_intro", "Pekan depan insyaAllah akan mencapai target sebesar:"),
     )
     return c

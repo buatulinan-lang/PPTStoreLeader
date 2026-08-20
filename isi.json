@@ -1,10 +1,60 @@
 {
   "goals": [
-    {"nama": "GROSS PROFIT", "nilai": 84.31, "ket": ""},
-    {"nama": "OMSET AKSESORIS", "nilai": 59.5, "ket": ""},
-    {"nama": "TINGKAT KEPUASAN PELANGGAN", "nilai": 124.0, "ket": ""}
+    {
+      "nama": "GROSS PROFIT",
+      "nilai": 84.31,
+      "ket": ""
+    },
+    {
+      "nama": "OMSET AKSESORIS",
+      "nilai": 59.5,
+      "ket": ""
+    },
+    {
+      "nama": "TINGKAT KEPUASAN PELANGGAN",
+      "nilai": 124.0,
+      "ket": ""
+    },
+    {
+      "nama": "GOOGLE ULASAN",
+      "nilai": 92.0,
+      "ket": ""
+    }
   ],
-  "catatan": ["Ganti dengan catatan pekan ini", "", ""],
-  "todo": [{"goal": "", "measure": "", "todo": "", "pic": ""}],
-  "komitmen": [{"indikator": "", "target": "", "aktual": "", "ket": ""}]
+  "catatan": [
+    "Ganti dengan catatan pekan ini",
+    "",
+    ""
+  ],
+  "struktur": [
+    {
+      "nama": "Nama Store Leader",
+      "jabatan": "Store Leader"
+    },
+    {
+      "nama": "Nama Supervisor",
+      "jabatan": "Supervisor"
+    },
+    {
+      "nama": "Nama Sales Corporate",
+      "jabatan": "Sales Corporate"
+    },
+    {
+      "nama": "Nama Teknisi",
+      "jabatan": "Teknisi"
+    },
+    {
+      "nama": "Nama Admin",
+      "jabatan": "Admin"
+    }
+  ],
+  "komitmen": [
+    {
+      "pencapaian": "",
+      "komitmen": "",
+      "target": ""
+    }
+  ],
+  "foto_measure": [],
+  "foto_ar": []
 }
