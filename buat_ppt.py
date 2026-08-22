@@ -64,9 +64,12 @@ def main():
 
     flt = dict(tahun=tahun, periode=bulan, dim=dim, lingkup=a.lingkup)
     c = CTX.build(dfp, dff, flt, manual, {"pengiriman_raw": n_raw})
+    data = deck.build(c)
     with open(a.out, "wb") as fh:
-        fh.write(deck.build(c))
-    print(f"✅ {a.out} — 21 slide, periode {c['periode_label']}")
+        fh.write(data)
+    from pptx import Presentation
+    jml = len(Presentation(a.out).slides._sldIdLst)
+    print(f"✅ {a.out} — {jml} slide (v{deck.VERSI}), periode {c['periode_label']}")
 
 
 if __name__ == "__main__":

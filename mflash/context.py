@@ -151,6 +151,10 @@ def build(dfp, dff, flt, manual, raw_counts=None):
         struktur=susun_struktur(manual.get("struktur")),
         foto_measure=[f for f in (manual.get("foto_measure") or []) if f],
         foto_ar=[f for f in (manual.get("foto_ar") or []) if f],
+        foto_improvement=[f for f in (manual.get("foto_improvement") or []) if f],
+        foto_todo=[f for f in (manual.get("foto_todo") or []) if f],
+        teks_improvement=_bersih(manual.get("teks_improvement")),
+        support=_bersih_rows(manual.get("support"), ["divisi", "needs"]),
         komitmen_intro=manual.get("komitmen_intro", "Pekan depan insyaAllah akan mencapai target sebesar:"),
     )
     return c

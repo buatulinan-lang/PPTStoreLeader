@@ -1,7 +1,7 @@
-# M-Flash Dashboard Builder — versi 3.5 (21 slide)
+# M-Flash Dashboard Builder — versi 3.6 (24 slide)
 
 Aplikasi untuk mengubah file mentah Accurate menjadi dashboard interaktif **dan** presentasi
-PowerPoint 21 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
+PowerPoint 24 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
 dan tata letak yang sama persis).
 
 ---
@@ -29,14 +29,14 @@ Syarat: Python 3.9 atau lebih baru.
 
 1. **Hentikan aplikasi lama** — tutup jendela terminal/CMD yang sedang menjalankan Streamlit
    (tekan `Ctrl + C`), lalu jalankan lagi dari folder hasil ekstrak yang baru.
-2. Pastikan sidebar bertuliskan **Versi 3.5 · 21 slide**. Kalau masih versi lama, berarti aplikasi
+2. Pastikan sidebar bertuliskan **Versi 3.6 · 24 slide**. Kalau masih versi lama, berarti aplikasi
    masih dijalankan dari folder lama.
 3. Setelah mengubah isian, klik **Buat PPTX** lagi — tombol unduh sengaja dikosongkan setiap kali
    ada perubahan supaya file lama tidak ikut terunduh.
-4. Halaman **cover** file PPT memuat tulisan `Dibuat otomatis dari dashboard v3.5` —
+4. Halaman **cover** file PPT memuat tulisan `Dibuat otomatis dari dashboard v3.6` —
    cara tercepat memastikan file berasal dari versi terbaru.
 5. Untuk memastikan lewat properti file: klik kanan file → *Properties/Get Info* → bagian
-   *Comments* tertulis `M-Flash Dashboard Builder v3.5 — 21 slide`.
+   *Comments* tertulis `M-Flash Dashboard Builder v3.6 — 24 slide`.
 
 ### Menjalankan di Streamlit Cloud
 
@@ -82,7 +82,8 @@ file yang terbaca — jadi penyebabnya terlihat tanpa perlu membuka log.
 2. Atur filter: tahun, bulan, kategori penjualan, dan dimensi pembanding (cabang/teknisi/admin).
 3. Telusuri dashboard di tab yang tersedia.
 4. Isi tab **Slide manual**: 4 goal, tabel struktur organisasi, foto Measure Activity, foto AR,
-   dan tabel komitmen.
+   foto + kesimpulan Improvement & Efficiency, foto To Do List, tabel Support Needs, dan tabel
+   komitmen.
 5. Buka tab **⬇️ Unduh PPT** → klik *Buat PPTX* → *Unduh PPTX*.
 
 Aplikasi membaca kolom berdasarkan nama, jadi ekspor Accurate bulan depan bisa langsung dipakai
@@ -90,7 +91,7 @@ tanpa mengubah apa pun.
 
 ---
 
-## 3. Isi deck yang dihasilkan (21 slide)
+## 3. Isi deck yang dihasilkan (24 slide)
 
 | # | Slide | Sumber |
 |---|-------|--------|
@@ -111,8 +112,11 @@ tanpa mengubah apa pun.
 | 17 | Struktur organisasi | tabel nama & jabatan |
 | 18 | Measure Activity | unggah foto |
 | 19 | AR | unggah foto |
-| 20 | Komitmen — pencapaian, komitmen, target | input manual |
-| 21 | Penutup | otomatis |
+| 20 | Improvement & Efficiency | 4 foto + kesimpulan teks |
+| 21 | To Do List | unggah foto |
+| 22 | Support Needs — No, Divisi, Needs | tabel manual |
+| 23 | Komitmen — pencapaian, komitmen, target | input manual |
+| 24 | Penutup | otomatis |
 
 ### Struktur organisasi
 

@@ -41,8 +41,8 @@ except Exception as _e:  # noqa: BLE001
     st.stop()
 from mflash.metrics import n, pct, rp, tgl, periode_label
 
-VERSI = "3.5"
-JUMLAH_SLIDE = 21
+VERSI = "3.6"
+JUMLAH_SLIDE = 24
 
 st.set_page_config(page_title=f"M-Flash Dashboard Builder v{VERSI}", page_icon="📊", layout="wide")
 
@@ -154,6 +154,10 @@ man = st.session_state.setdefault("manual", {
     "komitmen": [{"pencapaian": "", "komitmen": "", "target": ""} for _ in range(4)],
     "foto_measure": [],
     "foto_ar": [],
+    "foto_improvement": [],
+    "foto_todo": [],
+    "teks_improvement": "",
+    "support": [{"divisi": "", "needs": ""} for _ in range(4)],
 })
 if st.session_state.get("versi_manual") != VERSI:
     # struktur input berubah antar versi — mulai dari bawaan versi ini
@@ -164,10 +168,14 @@ if st.session_state.get("versi_manual") != VERSI:
         "goals": [{"nama": g, "nilai": 0.0, "ket": ""} for g in GOAL_DEFAULT],
         "struktur": [{"nama": "", "jabatan": j} for j in JABATAN_DEFAULT],
         "komitmen": [{"pencapaian": "", "komitmen": "", "target": ""} for _ in range(4)],
-        "foto_measure": [], "foto_ar": [],
+        "foto_measure": [], "foto_ar": [], "foto_improvement": [], "foto_todo": [],
+        "teks_improvement": "",
+        "support": [{"divisi": "", "needs": ""} for _ in range(4)],
     })
-man.setdefault("foto_measure", [])
-man.setdefault("foto_ar", [])
+for _k in ("foto_measure", "foto_ar", "foto_improvement", "foto_todo"):
+    man.setdefault(_k, [])
+man.setdefault("teks_improvement", "")
+man.setdefault("support", [{"divisi": "", "needs": ""} for _ in range(4)])
 man.setdefault("struktur", [{"nama": "", "jabatan": j} for j in JABATAN_DEFAULT])
 man["komitmen"] = [r if set(r) >= {"pencapaian", "komitmen", "target"}
                    else {"pencapaian": "", "komitmen": "", "target": ""}
@@ -399,26 +407,42 @@ with tabs[6]:
                        "jabatan": st.column_config.TextColumn("Jabatan", width="medium")}
     ).to_dict("records")
 
-    st.divider()
-    st.subheader("Slide Measure Activity — foto")
-    fm = st.file_uploader("Unggah foto measure activity (maksimal 4)", type=["png", "jpg", "jpeg"],
-                          accept_multiple_files=True, key="up_measure")
-    if fm:
-        man["foto_measure"] = [f.getvalue() for f in fm[:4]]
-    if man["foto_measure"]:
-        st.image(man["foto_measure"], width=180)
-        if st.button("Hapus foto measure activity"):
-            man["foto_measure"] = []
+    def unggah_foto(judul, kunci, label=None):
+        st.subheader(judul)
+        berkas = st.file_uploader(label or "Unggah foto (maksimal 4)",
+                                  type=["png", "jpg", "jpeg"], accept_multiple_files=True,
+                                  key=f"up_{kunci}")
+        if berkas:
+            man[kunci] = [f.getvalue() for f in berkas[:4]]
+        if man.get(kunci):
+            st.image(man[kunci], width=170)
+            if st.button(f"Hapus foto — {judul}", key=f"del_{kunci}"):
+                man[kunci] = []
 
-    st.subheader("Slide AR — foto")
-    fa = st.file_uploader("Unggah foto AR (maksimal 4)", type=["png", "jpg", "jpeg"],
-                          accept_multiple_files=True, key="up_ar")
-    if fa:
-        man["foto_ar"] = [f.getvalue() for f in fa[:4]]
-    if man["foto_ar"]:
-        st.image(man["foto_ar"], width=180)
-        if st.button("Hapus foto AR"):
-            man["foto_ar"] = []
+    st.divider()
+    unggah_foto("Slide Measure Activity — foto", "foto_measure")
+    unggah_foto("Slide AR — foto", "foto_ar")
+
+    st.divider()
+    st.subheader("Slide Improvement & Efficiency")
+    unggah_foto("Foto improvement & efficiency", "foto_improvement",
+                "Unggah hingga 4 foto (ditata 2 × 2)")
+    man["teks_improvement"] = st.text_area(
+        "Kesimpulan improvement & efficiency", man.get("teks_improvement", ""), height=110,
+        placeholder="Contoh: Penataan ulang meja servis memangkas waktu tunggu unit dari 25 menit "
+                    "menjadi 12 menit.")
+
+    st.divider()
+    unggah_foto("Slide To Do List — foto", "foto_todo")
+
+    st.divider()
+    st.subheader("Slide Support Needs")
+    st.caption("Kolom nomor terisi otomatis di slide sesuai urutan baris.")
+    man["support"] = st.data_editor(
+        pd.DataFrame(man["support"]), num_rows="dynamic", use_container_width=True, key="sup_ed",
+        column_config={"divisi": st.column_config.TextColumn("Divisi", width="medium"),
+                       "needs": st.column_config.TextColumn("Needs", width="large")}
+    ).to_dict("records")
 
     st.divider()
     st.subheader("Slide Komitmen")
@@ -433,8 +457,10 @@ with tabs[6]:
 with tabs[7]:
     st.subheader("Unduh presentasi")
     tanda = repr([VERSI, flt, judul, penyaji, voucher_kata, flat,
-                  man["goals"], man["struktur"], man["komitmen"],
-                  len(man["foto_measure"]), len(man["foto_ar"])])
+                  man["goals"], man["struktur"], man["komitmen"], man["support"],
+                  man.get("teks_improvement", ""),
+                  [len(man.get(k, [])) for k in ("foto_measure", "foto_ar",
+                                                 "foto_improvement", "foto_todo")]])
     if st.session_state.get("pptx_tanda") != tanda:
         st.session_state.pop("pptx", None)
     st.write("Deck mengikuti template standar M-Flash: latar, logo, warna, dan tata letak yang sama.")

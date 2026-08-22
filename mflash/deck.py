@@ -20,7 +20,7 @@ from .loader import STATUS_ORDER
 
 STATUS_COLOR = {"Done": GREEN, "Cancel": RED, "Pending": AMBER, "Lainnya": BLUE}
 
-VERSI = "3.5"
+VERSI = "3.6"
 
 
 def _logo(slide, path, x, y, w, h):
@@ -789,6 +789,68 @@ def s_penutup(prs, c):
     return s
 
 
+# ============================================================ improvement & efficiency
+def s_improvement(prs, c):
+    s = base_slide(prs)
+    header(s, "IMPROVEMENT & EFFICIENCY", c["periode_label"])
+    fotos = (c.get("foto_improvement") or [])[:4]
+    catatan = (c.get("teks_improvement") or "").strip()
+    tinggi_foto = 3.9 if catatan else 5.3
+    area = (0.62, 1.5, 12.1, tinggi_foto)
+    if fotos:
+        kolom = 2 if len(fotos) > 1 else 1
+        baris = -(-len(fotos) // kolom)
+        gw = (area[2] - 0.25 * (kolom - 1)) / kolom
+        gh = (area[3] - 0.25 * (baris - 1)) / baris
+        for i, f in enumerate(fotos):
+            r_, k_ = divmod(i, kolom)
+            _pasang_foto(s, f, area[0] + k_ * (gw + 0.25), area[1] + r_ * (gh + 0.25), gw, gh)
+    else:
+        rect(s, *area, fill=CARD, line=LINE)
+        text(s, area[0], area[1] + area[3] / 2 - 0.2, area[2], 0.4,
+             "Unggah hingga 4 foto improvement & efficiency di aplikasi", 13, color=MUTED,
+             align=PP_ALIGN.CENTER)
+    if catatan:
+        note_card(s, 0.62, 5.55, 12.1, 1.35, catatan, "Kesimpulan Improvement & Efficiency")
+    footer(s, c["sumber"])
+    return s
+
+
+# ============================================================ support needs
+def s_support(prs, c):
+    s = base_slide(prs)
+    header(s, "SUPPORT NEEDS", c["periode_label"])
+    baris = c.get("support") or []
+    if not baris:
+        note_card(s, 0.62, 2.0, 12.1, 1.2,
+                  "Isi tabel Support Needs (divisi & kebutuhan) di aplikasi.")
+        _web(s)
+        return s
+    kolom = [(0.75, 0.75, "NO", PP_ALIGN.CENTER), (1.5, 3.1, "DIVISI", PP_ALIGN.LEFT),
+             (4.6, 8.0, "NEEDS", PP_ALIGN.LEFT)]
+    tinggi = min(0.62, max(0.42, (6.5 - 1.9) / max(1, len(baris))))
+    rect(s, 0.62, 1.5, 12.1, 0.42 + tinggi * min(len(baris), 12) + 0.16, fill=CARD, line=LINE)
+    for x, w, lab, al in kolom:
+        text(s, x, 1.62, w, 0.28, lab, 8.5, bold=True, color=MUTED, align=al)
+    y = 1.96
+    for i, r in enumerate(baris[:12]):
+        if i % 2 == 0:
+            rect(s, 0.72, y, 11.9, tinggi, fill=CARD_ALT, shape=MSO_SHAPE.RECTANGLE)
+        isi = [(0.75, 0.75, str(i + 1), True, NAVY, PP_ALIGN.CENTER),
+               (1.5, 3.1, str(r.get("divisi", ""))[:34], True, INK, PP_ALIGN.LEFT),
+               (4.6, 8.0, str(r.get("needs", ""))[:130], False, INK, PP_ALIGN.LEFT)]
+        for x, w, v, bo, col, al in isi:
+            text(s, x, y, w, tinggi, v, 11 if tinggi >= 0.5 else 10, bold=bo, color=col,
+                 align=al, anchor=MSO_ANCHOR.MIDDLE)
+        y += tinggi
+    if len(baris) > 12:
+        text(s, 0.62, y + 0.06, 12.1, 0.26, f"+{len(baris) - 12} kebutuhan lain tidak ditampilkan",
+             9, color=MUTED)
+    footer(s, c["sumber"])
+    return s
+
+
+
 # ============================================================ build
 def build(c) -> bytes:
     prs = Presentation()
@@ -817,6 +879,9 @@ def build(c) -> bytes:
     s_struktur(prs, c)
     s_foto(prs, c, "MEASURE ACTIVITY", "foto_measure")
     s_foto(prs, c, "AR", "foto_ar")
+    s_improvement(prs, c)
+    s_foto(prs, c, "TO DO LIST", "foto_todo")
+    s_support(prs, c)
     s_komitmen(prs, c)
     s_penutup(prs, c)
     cp = prs.core_properties
