@@ -1,4 +1,4 @@
-# M-Flash Dashboard Builder — versi 3.7 (25 slide)
+# M-Flash Dashboard Builder — versi 3.8 (25 slide)
 
 Aplikasi untuk mengubah file mentah Accurate menjadi dashboard interaktif **dan** presentasi
 PowerPoint 25 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
@@ -29,14 +29,14 @@ Syarat: Python 3.9 atau lebih baru.
 
 1. **Hentikan aplikasi lama** — tutup jendela terminal/CMD yang sedang menjalankan Streamlit
    (tekan `Ctrl + C`), lalu jalankan lagi dari folder hasil ekstrak yang baru.
-2. Pastikan sidebar bertuliskan **Versi 3.7 · 25 slide**. Kalau masih versi lama, berarti aplikasi
+2. Pastikan sidebar bertuliskan **Versi 3.8 · 25 slide**. Kalau masih versi lama, berarti aplikasi
    masih dijalankan dari folder lama.
 3. Setelah mengubah isian, klik **Buat PPTX** lagi — tombol unduh sengaja dikosongkan setiap kali
    ada perubahan supaya file lama tidak ikut terunduh.
-4. Halaman **cover** file PPT memuat tulisan `Dibuat otomatis dari dashboard v3.7` —
+4. Halaman **cover** file PPT memuat tulisan `Dibuat otomatis dari dashboard v3.8` —
    cara tercepat memastikan file berasal dari versi terbaru.
 5. Untuk memastikan lewat properti file: klik kanan file → *Properties/Get Info* → bagian
-   *Comments* tertulis `M-Flash Dashboard Builder v3.7 — 25 slide`.
+   *Comments* tertulis `M-Flash Dashboard Builder v3.8 — 25 slide`.
 
 ### Menjalankan di Streamlit Cloud
 
@@ -76,7 +76,7 @@ file yang terbaca — jadi penyebabnya terlihat tanpa perlu membuka log.
 
 ## 2. Cara pakai
 
-1. Unggah file mentah di panel kiri (boleh dua-duanya sekaligus):
+1. Unggah file mentah di panel kiri (boleh beberapa sekaligus):
    - `rincian_pengiriman_pesanan_*.xlsx` → **unit masuk** per hari/bulan, klasifikasi Done, Pending, Cancel
    - `rincian_faktur_penjualan_*.xlsx` → **penjualan** per hari/bulan, breakdown kategori, voucher, bagi hasil
 2. Atur filter: tahun, bulan, kategori penjualan, dan dimensi pembanding (cabang/teknisi/admin).
@@ -85,6 +85,15 @@ file yang terbaca — jadi penyebabnya terlihat tanpa perlu membuka log.
    foto + kesimpulan Improvement & Efficiency, foto To Do List, tabel Support Needs, dan tabel
    komitmen.
 5. Buka tab **⬇️ Unduh PPT** → klik *Buat PPTX* → *Unduh PPTX*.
+
+**Format yang diterima:** `.xlsx`, `.xls`, `.xlsm`, `.csv`, `.tsv`, `.txt`, **`.csv.gz`**, `.zip`,
+dan `.parquet`. Untuk CSV, pemisah kolom (`,` `;` tab `|`) dan encoding dideteksi otomatis, jadi
+file gabungan hasil ekspor sistem lain tetap terbaca.
+
+**Beberapa berkas sejenis otomatis digabung.** Unggah sekaligus file gabungan per bulan atau per
+cabang — aplikasi menyatukannya sebelum menghitung, dan panel kiri menyebutkan berapa berkas yang
+tergabung. Untuk data pengiriman pesanan, baris yang identik tetap dihitung satu unit meskipun
+berasal dari berkas berbeda.
 
 Aplikasi membaca kolom berdasarkan nama, jadi ekspor Accurate bulan depan bisa langsung dipakai
 tanpa mengubah apa pun.

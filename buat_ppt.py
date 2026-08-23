@@ -25,20 +25,27 @@ def main():
     ap.add_argument("--out", default=f"WEEKLY_MEETING_MFLASH_{dt.date.today():%Y%m%d}.pptx")
     a = ap.parse_args()
 
-    dfp = dff = None
-    n_raw = 0
+    bagian = {"pengiriman": [], "faktur": []}
     for f in a.files:
         raw = loader.read_excel_any(f)
         kind = loader.detect_kind(raw)
-        if kind == "pengiriman":
-            dfp = loader.prep_pengiriman(raw)
-            n_raw = dfp.attrs.get("n_raw", len(raw))
-            print(f"  pengiriman : {len(raw):,} baris → {len(dfp):,} unit unik")
-        elif kind == "faktur":
-            dff = loader.prep_faktur(raw)
-            print(f"  faktur     : {len(dff):,} baris penjualan")
+        if kind in bagian:
+            bagian[kind].append(raw)
+            print(f"  {kind:<11}: {len(raw):,} baris dari {f}")
         else:
             print(f"  ! {f}: format tidak dikenali, dilewati")
+
+    dfp = dff = None
+    n_raw = 0
+    if bagian["pengiriman"]:
+        gabung_p = loader.gabung(bagian["pengiriman"])
+        dfp = loader.prep_pengiriman(gabung_p)
+        n_raw = dfp.attrs.get("n_raw", len(gabung_p))
+        print(f"  pengiriman : {n_raw:,} baris → {len(dfp):,} unit unik "
+              f"({len(bagian['pengiriman'])} berkas)")
+    if bagian["faktur"]:
+        dff = loader.prep_faktur(loader.gabung(bagian["faktur"]))
+        print(f"  faktur     : {len(dff):,} baris penjualan ({len(bagian['faktur'])} berkas)")
     if dfp is None:
         sys.exit("File rincian pengiriman pesanan wajib ada.")
 

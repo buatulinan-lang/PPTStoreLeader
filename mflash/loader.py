@@ -1,6 +1,11 @@
 """Pembacaan & pembersihan file mentah M-Flash (Excel export Accurate)."""
 from __future__ import annotations
+import gzip
+import io
+import os
 import re
+import zipfile
+
 import pandas as pd
 
 
@@ -8,17 +13,80 @@ def _norm(s) -> str:
     return re.sub(r"\s+", " ", str(s)).strip().upper()
 
 
+EKSTENSI_TABEL = (".csv", ".tsv", ".txt", ".gz", ".zip", ".xlsx", ".xls", ".xlsm", ".parquet")
+
+
+def _baca_teks(buf, nama=""):
+    """Baca CSV/TSV apa pun: pemisah dan encoding dideteksi otomatis."""
+    if hasattr(buf, "read"):
+        data = buf.read()
+    else:
+        with open(buf, "rb") as fh:
+            data = fh.read()
+    kesalahan = None
+    for enc in ("utf-8-sig", "utf-8", "latin-1"):
+        for sep in (None, ",", ";", "\t", "|"):
+            try:
+                df = pd.read_csv(io.BytesIO(data), sep=sep, encoding=enc,
+                                 engine="python" if sep is None else "c",
+                                 on_bad_lines="skip", low_memory=False)
+                if df.shape[1] > 1:
+                    return df
+                kesalahan = kesalahan or ValueError("hanya satu kolom terbaca")
+            except Exception as e:  # noqa: BLE001
+                kesalahan = e
+    raise ValueError(f"Tidak bisa membaca {nama or 'file'}: {kesalahan}")
+
+
 def read_excel_any(file) -> pd.DataFrame:
-    """Baca xlsx/xls/csv, buang kolom kosong 'Unnamed' yang jadi pemisah."""
-    name = getattr(file, "name", str(file)).lower()
-    if name.endswith(".csv"):
-        df = pd.read_csv(file)
+    """Baca xlsx/xls/csv/tsv/csv.gz/zip/parquet.
+
+    Kolom kosong 'Unnamed' yang jadi pemisah pada ekspor Accurate ikut dibuang.
+    """
+    nama = str(getattr(file, "name", file))
+    rendah = nama.lower()
+
+    if rendah.endswith(".gz"):                       # csv.gz — file gabungan terkompresi
+        isi = file.read() if hasattr(file, "read") else open(file, "rb").read()
+        df = _baca_teks(io.BytesIO(gzip.decompress(isi)), nama)
+    elif rendah.endswith(".zip"):
+        isi = file.read() if hasattr(file, "read") else open(file, "rb").read()
+        with zipfile.ZipFile(io.BytesIO(isi)) as z:
+            anggota = [m for m in z.namelist()
+                       if m.lower().endswith((".csv", ".tsv", ".txt", ".xlsx", ".xls"))
+                       and not m.startswith("__MACOSX")]
+            if not anggota:
+                raise ValueError(f"{os.path.basename(nama)}: tidak ada file tabel di dalam zip")
+            bagian = []
+            for m in anggota:
+                with z.open(m) as fh:
+                    data = fh.read()
+                if m.lower().endswith((".xlsx", ".xls")):
+                    bagian.append(pd.read_excel(io.BytesIO(data)))
+                else:
+                    bagian.append(_baca_teks(io.BytesIO(data), m))
+            df = pd.concat(bagian, ignore_index=True) if len(bagian) > 1 else bagian[0]
+    elif rendah.endswith(".parquet"):
+        df = pd.read_parquet(file)
+    elif rendah.endswith((".csv", ".tsv", ".txt")):
+        df = _baca_teks(file, nama)
     else:
         df = pd.read_excel(file)
+
     df = df.loc[:, [c for c in df.columns if not str(c).startswith("Unnamed")]]
     df.columns = [_norm(c) for c in df.columns]
     df = df.dropna(axis=1, how="all")
     return df
+
+
+def gabung(bagian) -> pd.DataFrame:
+    """Satukan beberapa berkas sejenis menjadi satu tabel."""
+    bagian = [b for b in bagian if b is not None and len(b)]
+    if not bagian:
+        return pd.DataFrame()
+    if len(bagian) == 1:
+        return bagian[0]
+    return pd.concat(bagian, ignore_index=True, sort=False)
 
 
 def detect_kind(df: pd.DataFrame) -> str:

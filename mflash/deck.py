@@ -20,7 +20,7 @@ from .loader import STATUS_ORDER
 
 STATUS_COLOR = {"Done": GREEN, "Cancel": RED, "Pending": AMBER, "Lainnya": BLUE}
 
-VERSI = "3.7"
+VERSI = "3.8"
 
 
 def _logo(slide, path, x, y, w, h):

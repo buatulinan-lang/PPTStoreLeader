@@ -41,7 +41,7 @@ except Exception as _e:  # noqa: BLE001
     st.stop()
 from mflash.metrics import n, pct, rp, tgl, periode_label
 
-VERSI = "3.7"
+VERSI = "3.8"
 JUMLAH_SLIDE = 25
 
 st.set_page_config(page_title=f"M-Flash Dashboard Builder v{VERSI}", page_icon="📊", layout="wide")
@@ -69,56 +69,83 @@ def px_style(fig, h=330, legend=True):
 
 
 # ------------------------------------------------------------------ data
-@st.cache_data(show_spinner="Membaca & merapikan file… (file besar butuh 20–40 detik)")
-def _load(file_bytes, name):
-    """Baca + siapkan sekali saja; hasilnya di-cache supaya filter terasa instan."""
-    import io
-    src = (io.StringIO(file_bytes.decode("utf-8", "ignore")) if name.lower().endswith(".csv")
-           else io.BytesIO(file_bytes))
-    src.name = name
-    df = loader.read_excel_any(src)
-    kind = loader.detect_kind(df)
-    if kind == "pengiriman":
-        out = loader.prep_pengiriman(df)
-        return out, kind, {"raw": out.attrs.get("n_raw", len(df))}
-    if kind == "faktur":
-        return loader.prep_faktur(df), kind, {"raw": len(df)}
-    return df, kind, {"raw": len(df)}
+JENIS_BERKAS = ["xlsx", "xls", "xlsm", "csv", "tsv", "txt", "gz", "zip", "parquet"]
+
+
+@st.cache_data(show_spinner="Membaca berkas… (file besar butuh beberapa detik)", max_entries=12)
+def _baca(isi: bytes, nama: str):
+    """Baca satu berkas mentah (xlsx / csv / csv.gz / zip / parquet) → tabel + jenisnya."""
+    import io as _io
+    buf = _io.BytesIO(isi)
+    buf.name = nama
+    df = loader.read_excel_any(buf)
+    return df, loader.detect_kind(df)
+
+
+@st.cache_data(show_spinner="Merapikan data…", max_entries=8)
+def _siapkan(kunci, jenis, _bagian):
+    """Gabungkan berkas sejenis lalu rapikan. `kunci` menjaga cache tetap benar."""
+    mentah = loader.gabung(_bagian)
+    if jenis == "pengiriman":
+        rapi = loader.prep_pengiriman(mentah)
+        return rapi, {"raw": rapi.attrs.get("n_raw", len(mentah)), "berkas": len(_bagian)}
+    if jenis == "faktur":
+        rapi = loader.prep_faktur(mentah)
+        return rapi, {"raw": len(mentah), "berkas": len(_bagian)}
+    return mentah, {"raw": len(mentah), "berkas": len(_bagian)}
 
 
 st.sidebar.title("📊 M-Flash Dashboard")
 st.sidebar.caption(f"Versi {VERSI} · {JUMLAH_SLIDE} slide · struktur organisasi 4 tingkat")
 
-up = st.sidebar.file_uploader("File mentah (bisa 2 sekaligus)", type=["xlsx", "xls", "csv"],
-                              accept_multiple_files=True)
+up = st.sidebar.file_uploader(
+    "File mentah (boleh beberapa sekaligus)", type=JENIS_BERKAS, accept_multiple_files=True,
+    help="Menerima .xlsx, .csv, .csv.gz, .zip, dan .parquet. Berkas sejenis otomatis digabung.")
 
-if "store" not in st.session_state:
-    st.session_state.store = {}
+kumpulan, tak_dikenali = {}, []
 for uf in up or []:
-    df, kind, meta = _load(uf.getvalue(), uf.name)
-    if kind == "unknown":
-        st.sidebar.warning(f"{uf.name}: format tidak dikenali, dilewati.")
-    else:
-        st.session_state.store[kind] = (df, uf.name, meta)
+    isi = uf.getvalue()
+    df_raw, jenis = _baca(isi, uf.name)
+    if jenis == "unknown":
+        tak_dikenali.append(uf.name)
+        continue
+    kumpulan.setdefault(jenis, {"nama": [], "df": []})
+    kumpulan[jenis]["nama"].append(uf.name)
+    kumpulan[jenis]["df"].append(df_raw)
 
-store = st.session_state.store
+for nama in tak_dikenali:
+    st.sidebar.warning(f"{nama}: kolomnya tidak dikenali, dilewati.")
+
+store = {}
+for jenis, isi in kumpulan.items():
+    kunci = tuple(sorted(isi["nama"]))
+    rapi, meta = _siapkan(kunci, jenis, isi["df"])
+    store[jenis] = (rapi, ", ".join(isi["nama"]), meta)
+
 if "pengiriman" not in store:
     st.title("M-Flash Dashboard Builder")
     st.info("Unggah minimal file **rincian pengiriman pesanan** di panel kiri. "
-            "File **rincian faktur penjualan** melengkapi slide omzet, laba, voucher, dan bagi hasil.")
+            "File **rincian faktur penjualan** melengkapi slide omzet, laba, pilar, voucher, "
+            "dan bagi hasil.")
+    st.caption("Format yang diterima: .xlsx, .xls, .csv, .csv.gz, .zip, dan .parquet. "
+               "Beberapa berkas sejenis (mis. gabungan per bulan atau per cabang) otomatis "
+               "disatukan.")
     st.stop()
 
 dfp, nama_p, meta_p = store["pengiriman"]
 dff = store["faktur"][0] if "faktur" in store else None
 n_raw = meta_p.get("raw", len(dfp))
 
-st.sidebar.success(f"Pengiriman: {n(n_raw)} baris → {n(len(dfp))} unit unik")
+st.sidebar.success(f"Pengiriman: {n(n_raw)} baris → {n(len(dfp))} unit unik"
+                   + (f" · {meta_p['berkas']} berkas" if meta_p.get("berkas", 1) > 1 else ""))
 if dff is not None:
-    st.sidebar.success(f"Faktur: {n(len(dff))} baris penjualan")
+    mf = store["faktur"][2]
+    st.sidebar.success(f"Faktur: {n(len(dff))} baris penjualan"
+                       + (f" · {mf['berkas']} berkas" if mf.get("berkas", 1) > 1 else ""))
 else:
-    st.sidebar.info("File faktur penjualan belum diunggah — slide omzet/laba/voucher akan kosong.")
+    st.sidebar.info("File faktur penjualan belum diunggah — slide omzet/laba/pilar/voucher "
+                    "akan kosong.")
 
-# ------------------------------------------------------------------ filter
 st.sidebar.header("Filter")
 tahun_all = sorted(dfp["TAHUN"].unique())
 tahun = st.sidebar.multiselect("Tahun", tahun_all, default=[tahun_all[-1]])
