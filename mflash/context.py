@@ -105,6 +105,7 @@ def build(dfp, dff, flt, manual, raw_counts=None):
             dim_top[s] = ("-", 0, 0.0)
 
     jual = M.penjualan(f)
+    plr = M.pilar(f, manual.get("kolom_pilar"))
     vch = M.voucher(f, manual.get("voucher_kata", "VOUCHER"))
     bagi = M.bagi_hasil(f, manual.get("tarif"), manual.get("flat", 30.0))
     mm = M.mom(p, f)
@@ -127,7 +128,7 @@ def build(dfp, dff, flt, manual, raw_counts=None):
         r, detail["Pending"], detail["Cancel"], dim_label, per_dim_df)
     c = dict(
         p=p, f=f, r=r, dim=dim, dim_label=dim_label, per_dim=per_dim_df, dim_top=dim_top,
-        detail=detail, jual=jual, voucher=vch, bagi=bagi, mom=mm,
+        detail=detail, jual=jual, pilar=plr, voucher=vch, bagi=bagi, mom=mm,
         per_bulan=bulan_top, per_bulan_status=M.per_bulan_status(p),
         harian=M.harian(p), harian_status=M.harian_status(p),
         weekday=M.per_weekday(p), top_hari=M.top_hari(p, 10),

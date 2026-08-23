@@ -41,8 +41,8 @@ except Exception as _e:  # noqa: BLE001
     st.stop()
 from mflash.metrics import n, pct, rp, tgl, periode_label
 
-VERSI = "3.6"
-JUMLAH_SLIDE = 24
+VERSI = "3.7"
+JUMLAH_SLIDE = 25
 
 st.set_page_config(page_title=f"M-Flash Dashboard Builder v{VERSI}", page_icon="📊", layout="wide")
 
@@ -132,6 +132,18 @@ dim = st.sidebar.selectbox("Dimensi pembanding (slide 'kinerja per …')", dims)
 dim_vals = st.sidebar.multiselect(f"Filter {dim}", sorted(dfp[dim].unique()), default=[]) if dim else []
 lingkup = st.sidebar.text_input("Lingkup (tampil di cover)", "Cabang Klender")
 
+kolom_pilar = None
+if dff is not None:
+    _otomatis = M.kolom_pilar(dff)
+    _pilihan = ["(deteksi otomatis)"] + [c for c in dff.columns if dff[c].dtype == object]
+    _idx = _pilihan.index(_otomatis) if _otomatis in _pilihan else 0
+    _pil = st.sidebar.selectbox("Kolom Kategori Pilar", _pilihan, index=_idx,
+                                help="Slide Kategori Pilar memakai kolom ini. Baris tanpa isi "
+                                     "kategori pilar tidak dihitung.")
+    kolom_pilar = None if _pil.startswith("(") else _pil
+    if _otomatis is None and kolom_pilar is None:
+        st.sidebar.caption("Kolom kategori pilar belum ditemukan — slide Kategori Pilar akan kosong.")
+
 flt = dict(tahun=tahun, periode=periode, **{"KATEGORI PENJUALAN": kat},
            dim=dim, dim_vals=dim_vals, lingkup=lingkup)
 
@@ -185,7 +197,7 @@ while len(man["goals"]) < 4:
     man["goals"].append({"nama": GOAL_DEFAULT[len(man["goals"])], "nilai": 0.0, "ket": ""})
 
 manual = dict(judul=judul, penyaji=penyaji, voucher_kata=voucher_kata, flat=flat,
-              tarif=M.DEFAULT_TARIF, **man)
+              tarif=M.DEFAULT_TARIF, kolom_pilar=kolom_pilar, **man)
 
 c = CTX.build(dfp, dff, flt, manual, {"pengiriman_raw": n_raw})
 r = c["r"]
@@ -331,6 +343,24 @@ with tabs[4]:
                                       "LABA": gk["LABA"].map(rp),
                                       "MARGIN": gk["MARGIN"].map(lambda v: pct(v))}),
                         use_container_width=True)
+        pl = c.get("pilar")
+        st.subheader("Kategori pilar")
+        if pl:
+            pc = st.columns(4)
+            pc[0].metric("OMZET PILAR", rp(pl["omzet"]), f"{pct(pl['cakupan'])} dari total omzet")
+            pc[1].metric("LABA PILAR", rp(pl["laba"]), f"margin {pct(pl['margin'])}")
+            pc[2].metric("JUMLAH PILAR", n(pl["jumlah"]))
+            pc[3].metric("BARIS DIHITUNG", f"{n(pl['baris'])} / {n(pl['baris_total'])}")
+            gp = pl["per_pilar"]
+            st.dataframe(pd.DataFrame({"OMZET": gp["OMZET"].map(rp), "MODAL": gp["MODAL"].map(rp),
+                                       "LABA": gp["LABA"].map(rp),
+                                       "MARGIN": gp["MARGIN"].map(lambda v: pct(v)),
+                                       "KONTRIBUSI": gp["KONTRIBUSI"].map(lambda v: pct(v))}),
+                         use_container_width=True)
+        else:
+            st.info("Kolom kategori pilar tidak ditemukan pada file faktur. Pilih kolomnya di "
+                    "panel kiri bila namanya berbeda.")
+
         st.subheader("Per kategori barang")
         gb = j["per_kategori"]
         st.dataframe(pd.DataFrame({"OMZET": gb["OMZET"].map(rp), "MODAL": gb["MODAL"].map(rp),
@@ -456,7 +486,7 @@ with tabs[6]:
 # --- unduh
 with tabs[7]:
     st.subheader("Unduh presentasi")
-    tanda = repr([VERSI, flt, judul, penyaji, voucher_kata, flat,
+    tanda = repr([VERSI, flt, judul, penyaji, voucher_kata, flat, kolom_pilar,
                   man["goals"], man["struktur"], man["komitmen"], man["support"],
                   man.get("teks_improvement", ""),
                   [len(man.get(k, [])) for k in ("foto_measure", "foto_ar",
@@ -468,6 +498,7 @@ with tabs[7]:
     if st.button("🛠️ Buat PPTX", type="primary"):
         manual2 = dict(manual)
         manual2.update(man)
+        manual2["kolom_pilar"] = kolom_pilar
         c2 = CTX.build(dfp, dff, flt, manual2, {"pengiriman_raw": n_raw})
         data = deck.build(c2)
         st.session_state["pptx"] = data

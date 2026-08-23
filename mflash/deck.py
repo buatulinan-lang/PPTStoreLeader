@@ -20,7 +20,7 @@ from .loader import STATUS_ORDER
 
 STATUS_COLOR = {"Done": GREEN, "Cancel": RED, "Pending": AMBER, "Lainnya": BLUE}
 
-VERSI = "3.6"
+VERSI = "3.7"
 
 
 def _logo(slide, path, x, y, w, h):
@@ -144,6 +144,65 @@ def s_komposisi(prs, c):
               "Pending adalah kondisi terkini, bukan akumulasi sepanjang periode. Unit lama yang sudah "
               "tuntas tidak lagi terhitung di sini.")
     footer(s, c["sumber"])
+    return s
+
+
+
+# ============================================================ kategori pilar
+def s_pilar(prs, c):
+    s = base_slide(prs)
+    pl = c.get("pilar")
+    if not pl:
+        header(s, "KATEGORI PILAR", "Kolom kategori pilar tidak ditemukan pada file faktur")
+        note_card(s, 0.62, 2.0, 12.1, 1.3,
+                  "Slide ini terisi otomatis begitu file faktur penjualan memuat kolom "
+                  "KATEGORI PILAR. Bila nama kolomnya berbeda, pilih kolomnya di panel kiri "
+                  "aplikasi. Baris tanpa kategori pilar memang sengaja tidak ikut dihitung.")
+        footer(s, c["sumber"])
+        return s
+    g = pl["per_pilar"]
+    header(s, "KATEGORI PILAR",
+           f"{c['periode_label']} · {n(pl['jumlah'])} pilar · hanya baris yang memiliki "
+           f"kategori pilar yang dihitung")
+    teratas = g.index[0]
+    cards = [("OMZET PILAR", rp(pl["omzet"]), f"{n(pl['baris'])} dari {n(pl['baris_total'])} baris", NAVY),
+             ("MODAL", rp(pl["modal"]), f"{pct(100 - pl['margin'])} dari omzet pilar", MUTED),
+             ("LABA KOTOR", rp(pl["laba"]), f"margin {pct(pl['margin'])}", GREEN_D),
+             ("PILAR TERBESAR", str(teratas)[:18],
+              f"{rp(g.loc[teratas, 'OMZET'])} ({pct(g.loc[teratas, 'KONTRIBUSI'])})", NAVY),
+             ("MARGIN TERTINGGI", str(g["MARGIN"].idxmax())[:18], pct(g["MARGIN"].max()), GREEN_D)]
+    for i, (l, v, sub, col) in enumerate(cards):
+        kpi(s, 0.62 + i * 2.45, 1.42, 2.29, 1.32, l, v, sub, col,
+            value_size=15 if i in (3, 4) else 19)
+
+    gg = g.head(7).iloc[::-1]
+    add_chart(s, "bar_stacked", [str(i)[:18] for i in gg.index],
+              {"Modal (jt)": (gg["MODAL"] / 1e6).tolist(), "Laba (jt)": (gg["LABA"] / 1e6).tolist()},
+              0.62, 3.0, 6.3, 3.4, colors=[NAVY2, GREEN], legend=True, gap=45, overlap=100)
+
+    text(s, 7.2, 3.0, 5.52, 0.3, "Rincian per pilar", 11, bold=True, color=NAVY)
+    kol = [(7.3, 1.9, "PILAR", PP_ALIGN.LEFT), (9.2, 1.25, "OMZET", PP_ALIGN.RIGHT),
+           (10.45, 1.25, "LABA", PP_ALIGN.RIGHT), (11.7, 1.0, "MARGIN", PP_ALIGN.RIGHT)]
+    for x, w, lab, al in kol:
+        text(s, x, 3.36, w, 0.28, lab, 8.5, bold=True, color=MUTED, align=al)
+    baris = g.head(7)
+    tinggi = min(0.42, 2.6 / max(1, len(baris)))
+    y = 3.68
+    for i, (k, row) in enumerate(baris.iterrows()):
+        if i % 2 == 0:
+            rect(s, 7.2, y, 5.52, tinggi, fill=CARD, shape=MSO_SHAPE.RECTANGLE)
+        isi = [(7.3, 1.9, str(k)[:20], True, INK, PP_ALIGN.LEFT),
+               (9.2, 1.25, rp(row["OMZET"]), False, INK, PP_ALIGN.RIGHT),
+               (10.45, 1.25, rp(row["LABA"]), False, GREEN_D, PP_ALIGN.RIGHT),
+               (11.7, 1.0, pct(row["MARGIN"]), True, INK, PP_ALIGN.RIGHT)]
+        for x, w, v, bo, col, al in isi:
+            text(s, x, y, w, tinggi, v, 9.5, bold=bo, color=col, align=al, anchor=MSO_ANCHOR.MIDDLE)
+        y += tinggi
+    note_card(s, 7.2, max(y + 0.12, 6.0), 5.52, 0.72,
+              f"Kontribusi pilar terbesar {pct(g['KONTRIBUSI'].iloc[0])} dari total omzet berpilar; "
+              f"omzet berpilar {pct(pl['cakupan'])} dari seluruh omzet.")
+    footer(s, f"Sumber kolom: {pl['kolom']}. Baris tanpa kategori pilar tidak dihitung "
+              f"({n(pl['baris'])} dari {n(pl['baris_total'])} baris faktur ikut dihitung).")
     return s
 
 
@@ -859,6 +918,7 @@ def build(c) -> bytes:
     s_goal(prs, c)
     s_ringkasan(prs, c)
     s_komposisi(prs, c)
+    s_pilar(prs, c)
     s_mom(prs, c)
     s_harian(prs, c)
     s_top_hari(prs, c)

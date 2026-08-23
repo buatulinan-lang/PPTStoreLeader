@@ -1,7 +1,7 @@
-# M-Flash Dashboard Builder — versi 3.6 (24 slide)
+# M-Flash Dashboard Builder — versi 3.7 (25 slide)
 
 Aplikasi untuk mengubah file mentah Accurate menjadi dashboard interaktif **dan** presentasi
-PowerPoint 24 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
+PowerPoint 25 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
 dan tata letak yang sama persis).
 
 ---
@@ -29,14 +29,14 @@ Syarat: Python 3.9 atau lebih baru.
 
 1. **Hentikan aplikasi lama** — tutup jendela terminal/CMD yang sedang menjalankan Streamlit
    (tekan `Ctrl + C`), lalu jalankan lagi dari folder hasil ekstrak yang baru.
-2. Pastikan sidebar bertuliskan **Versi 3.6 · 24 slide**. Kalau masih versi lama, berarti aplikasi
+2. Pastikan sidebar bertuliskan **Versi 3.7 · 25 slide**. Kalau masih versi lama, berarti aplikasi
    masih dijalankan dari folder lama.
 3. Setelah mengubah isian, klik **Buat PPTX** lagi — tombol unduh sengaja dikosongkan setiap kali
    ada perubahan supaya file lama tidak ikut terunduh.
-4. Halaman **cover** file PPT memuat tulisan `Dibuat otomatis dari dashboard v3.6` —
+4. Halaman **cover** file PPT memuat tulisan `Dibuat otomatis dari dashboard v3.7` —
    cara tercepat memastikan file berasal dari versi terbaru.
 5. Untuk memastikan lewat properti file: klik kanan file → *Properties/Get Info* → bagian
-   *Comments* tertulis `M-Flash Dashboard Builder v3.6 — 24 slide`.
+   *Comments* tertulis `M-Flash Dashboard Builder v3.7 — 25 slide`.
 
 ### Menjalankan di Streamlit Cloud
 
@@ -91,7 +91,7 @@ tanpa mengubah apa pun.
 
 ---
 
-## 3. Isi deck yang dihasilkan (24 slide)
+## 3. Isi deck yang dihasilkan (25 slide)
 
 | # | Slide | Sumber |
 |---|-------|--------|
@@ -99,24 +99,35 @@ tanpa mengubah apa pun.
 | 2 | Pencapaian Goal — 4 gauge: Gross Profit, Omset Aksesoris, Tingkat Kepuasan Pelanggan, Google Ulasan | input manual |
 | 3 | Ringkasan kinerja | pengiriman pesanan |
 | 4 | Komposisi status pengerjaan | pengiriman pesanan |
-| 5 | Bulan berjalan vs bulan sebelumnya (dibandingkan setara) | pengiriman + faktur |
-| 6 | Rekap unit masuk harian | pengiriman pesanan |
-| 7 | Hari dengan unit masuk tertinggi | pengiriman pesanan |
-| 8 | Kinerja per cabang/teknisi | pengiriman pesanan |
-| 9–11 | Rincian Pending, Done, Cancel | pengiriman pesanan |
-| 12 | Penjualan — modal, omzet & laba | faktur penjualan |
-| 13 | Rekap penjualan harian & bulanan | faktur penjualan |
-| 14 | Penjualan per kategori (service HP, service laptop, penjualan HP, dll) | faktur penjualan |
-| 15 | Voucher | faktur penjualan |
-| 16 | Bagi hasil teknisi | faktur penjualan |
-| 17 | Struktur organisasi | tabel nama & jabatan |
-| 18 | Measure Activity | unggah foto |
-| 19 | AR | unggah foto |
-| 20 | Improvement & Efficiency | 4 foto + kesimpulan teks |
-| 21 | To Do List | unggah foto |
-| 22 | Support Needs — No, Divisi, Needs | tabel manual |
-| 23 | Komitmen — pencapaian, komitmen, target | input manual |
-| 24 | Penutup | otomatis |
+| 5 | Kategori Pilar — omzet, laba kotor, margin & kontribusi | faktur penjualan |
+| 6 | Bulan berjalan vs bulan sebelumnya (dibandingkan setara) | pengiriman + faktur |
+| 7 | Rekap unit masuk harian | pengiriman pesanan |
+| 8 | Hari dengan unit masuk tertinggi | pengiriman pesanan |
+| 9 | Kinerja per cabang/teknisi | pengiriman pesanan |
+| 10–12 | Rincian Pending, Done, Cancel | pengiriman pesanan |
+| 13 | Penjualan — modal, omzet & laba | faktur penjualan |
+| 14 | Rekap penjualan harian & bulanan | faktur penjualan |
+| 15 | Penjualan per kategori (service HP, service laptop, penjualan HP, dll) | faktur penjualan |
+| 16 | Voucher | faktur penjualan |
+| 17 | Bagi hasil teknisi | faktur penjualan |
+| 18 | Struktur organisasi | tabel nama & jabatan |
+| 19 | Measure Activity | unggah foto |
+| 20 | AR | unggah foto |
+| 21 | Improvement & Efficiency | 4 foto + kesimpulan teks |
+| 22 | To Do List | unggah foto |
+| 23 | Support Needs — No, Divisi, Needs | tabel manual |
+| 24 | Komitmen — pencapaian, komitmen, target | input manual |
+| 25 | Penutup | otomatis |
+
+### Kategori pilar
+
+Slide ini membaca kolom pada file faktur yang namanya mengandung kata **PILAR**. Bila nama
+kolomnya berbeda, pilih kolomnya lewat **Kolom Kategori Pilar** di panel kiri aplikasi
+(atau `--kolom-pilar "NAMA KOLOM"` lewat baris perintah).
+
+**Baris yang kolom pilarnya kosong tidak ikut dihitung** — omzet, modal, laba, margin, dan
+kontribusi semuanya hanya dari baris yang punya kategori pilar. Catatan kaki slide menyebutkan
+berapa baris yang ikut dihitung dari total baris faktur, supaya selisihnya jelas.
 
 ### Struktur organisasi
 

@@ -274,6 +274,54 @@ def _vdim(d, dim):
     return s.sort_values(ascending=False)
 
 
+KOSONG = {"", "NAN", "NONE", "-", "0", "TIDAK ADA DATA", "TIDAK ADA", "NULL"}
+
+
+def kolom_pilar(f, kolom=None):
+    """Cari kolom kategori pilar; kembalikan None bila tidak ada."""
+    if f is None or not len(f):
+        return None
+    if kolom and kolom in f.columns:
+        return kolom
+    for c in f.columns:
+        cc = str(c).upper()
+        if "PILAR" in cc or "PILLAR" in cc:
+            return c
+    return None
+
+
+def pilar(f, kolom=None):
+    """Omzet, modal, laba per kategori pilar.
+
+    Baris tanpa kategori pilar tidak ikut dihitung — hanya baris yang punya
+    kategori pilar yang masuk pencapaian.
+    """
+    kol = kolom_pilar(f, kolom)
+    if kol is None:
+        return None
+    d = f.copy()
+    d["_PILAR"] = d[kol].astype(str).str.strip().str.upper()
+    d = d[~d["_PILAR"].isin(KOSONG) & d[kol].notna()]
+    if not len(d):
+        return None
+    g = d.groupby("_PILAR").agg(OMZET=("OMZET", "sum"), MODAL=("MODAL", "sum"),
+                                LABA=("LABA", "sum"))
+    g["FAKTUR"] = (d.groupby("_PILAR")["NO FAKTUR"].nunique() if "NO FAKTUR" in d
+                   else d.groupby("_PILAR").size())
+    g["MARGIN"] = g["LABA"] / g["OMZET"].replace(0, np.nan) * 100
+    g["KONTRIBUSI"] = g["OMZET"] / g["OMZET"].sum() * 100
+    g = g.sort_values("OMZET", ascending=False)
+    omzet, modal = g["OMZET"].sum(), g["MODAL"].sum()
+    laba = omzet - modal
+    omzet_semua = f["OMZET"].sum()
+    return dict(kolom=str(kol), per_pilar=g, omzet=omzet, modal=modal, laba=laba,
+                margin=safe_div(laba, omzet), jumlah=len(g),
+                baris=len(d), baris_total=len(f),
+                cakupan=safe_div(omzet, omzet_semua),
+                per_bulan=d.groupby(["PERIODE", "_PILAR"])["OMZET"].sum().unstack(fill_value=0).sort_index()
+                if "PERIODE" in d else None)
+
+
 DEFAULT_TARIF = {"INTERFACE": 20.0, "NORMAL": 30.0, "MATI TOTAL": 32.0, "PROMO": 60.0, "LAINNYA": 30.0}
 
 

@@ -20,6 +20,8 @@ def main():
     ap.add_argument("--penyaji", default="")
     ap.add_argument("--isi", default=None, help="file JSON berisi goal/komitmen/foto")
     ap.add_argument("--struktur", default=None, help="template Excel struktur organisasi")
+    ap.add_argument("--kolom-pilar", dest="kolom_pilar", default=None,
+                    help="nama kolom kategori pilar pada file faktur")
     ap.add_argument("--out", default=f"WEEKLY_MEETING_MFLASH_{dt.date.today():%Y%m%d}.pptx")
     a = ap.parse_args()
 
@@ -49,7 +51,8 @@ def main():
                   goals=[{"nama": g, "nilai": 0.0, "ket": ""} for g in
                          ("GROSS PROFIT", "OMSET AKSESORIS", "TINGKAT KEPUASAN PELANGGAN",
                           "GOOGLE ULASAN")],
-                  catatan=[], struktur=[], komitmen=[], foto_measure=[], foto_ar=[])
+                  catatan=[], struktur=[], komitmen=[], foto_measure=[], foto_ar=[],
+                  kolom_pilar=a.kolom_pilar)
     if a.isi:
         manual.update(json.load(open(a.isi, encoding="utf-8")))
     # foto boleh ditulis sebagai path file di isi.json
