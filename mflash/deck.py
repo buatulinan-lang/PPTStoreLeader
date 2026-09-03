@@ -1,4 +1,4 @@
-"""Pembuat file PPTX 19 slide sesuai template standar M-Flash."""
+"""Pembuat file PPTX sesuai template standar M-Flash."""
 from __future__ import annotations
 import io
 import os
@@ -20,7 +20,7 @@ from .loader import STATUS_ORDER
 
 STATUS_COLOR = {"Done": GREEN, "Cancel": RED, "Pending": AMBER, "Lainnya": BLUE}
 
-VERSI = "3.8"
+VERSI = "4.0"
 
 
 def _logo(slide, path, x, y, w, h):
@@ -77,6 +77,7 @@ def s_goal(prs, c):
     return s
 
 
+
 # ============================================================ slide 3
 def s_catatan(prs, c):
     s = base_slide(prs)
@@ -118,6 +119,58 @@ def s_ringkasan(prs, c):
         text(s, 8.61, y, 4.11, 0.6, b, 10.5, color=INK, spacing=1.1)
         y += 0.78
     footer(s, c["sumber"])
+    return s
+
+
+
+# ============================================================ perkembangan pekanan
+def s_pekanan(prs, c):
+    s = base_slide(prs)
+    pk = c.get("pekanan")
+    if not pk:
+        header(s, "PERKEMBANGAN PEKANAN", "Tidak ada data pada filter ini")
+        footer(s, c["sumber"])
+        return s
+    t = pk["tabel"]
+    header(s, "PERKEMBANGAN PEKANAN",
+           f"{tgl(pk['mulai'])} – {tgl(pk['selesai'])} · {n(pk['jumlah'])} pekan "
+           f"(Senin–Minggu) · {c['lingkup']}")
+
+    akhir, sebelum = pk["terakhir"], pk["sebelum"]
+
+    def delta_teks(kunci):
+        if sebelum is None or not sebelum[kunci]:
+            return "pekan pertama"
+        v = (akhir[kunci] - sebelum[kunci]) / sebelum[kunci] * 100
+        return f"{'+' if v >= 0 else ''}{pct(v)} vs pekan lalu"
+
+    warna_trx = GREEN_D if (sebelum is not None and akhir["TRANSAKSI"] >= sebelum["TRANSAKSI"]) else RED
+    warna_omz = GREEN_D if (sebelum is not None and akhir["OMZET"] >= sebelum["OMZET"]) else RED
+    cards = [("TOTAL TRANSAKSI", n(pk["total_trx"]), f"{n(pk['jumlah'])} pekan", NAVY),
+             ("TOTAL OMZET", rp(pk["total_omzet"]), "seluruh pekan", NAVY),
+             ("RATA-RATA / PEKAN", n(pk["rata_trx"], 1),
+              f"omzet {rp(pk['rata_omzet'])}/pekan", NAVY),
+             ("TRANSAKSI PEKAN TERAKHIR", n(akhir["TRANSAKSI"]), delta_teks("TRANSAKSI"), warna_trx),
+             ("OMZET PEKAN TERAKHIR", rp(akhir["OMZET"]), delta_teks("OMZET"), warna_omz)]
+    for i, (l, v, sub, col) in enumerate(cards):
+        kpi(s, 0.62 + i * 2.45, 1.42, 2.29, 1.32, l, v, sub, col, value_size=19)
+
+    label = [str(x) for x in t["LABEL"]]
+    text(s, 0.62, 3.0, 6.1, 0.3, "Total Transaksi per Pekan", 11, bold=True, color=NAVY)
+    add_chart(s, "column", label, {"Transaksi": t["TRANSAKSI"].tolist()},
+              0.62, 3.35, 6.1, 3.0, colors=[NAVY], labels=True, cat_size=7.5)
+
+    text(s, 7.0, 3.0, 5.72, 0.3, "Omzet per Pekan (juta)", 11, bold=True, color=NAVY)
+    if pk["ada_omzet"]:
+        add_chart(s, "column", label, {"Omzet (jt)": (t["OMZET"] / 1e6).tolist()},
+                  7.0, 3.35, 5.72, 3.0, colors=[GREEN], labels=True,
+                  label_fmt='#,##0.0', cat_size=7.5)
+    else:
+        note_card(s, 7.0, 3.35, 5.72, 3.0,
+                  "Unggah file rincian faktur penjualan untuk menampilkan omzet per pekan.")
+
+    footer(s, "Pekan dihitung Senin–Minggu. Pekan pertama dan terakhir bisa belum genap tujuh hari "
+              "karena mengikuti rentang data yang dipilih. " + c["sumber"])
     return s
 
 
@@ -917,26 +970,7 @@ def build(c) -> bytes:
     s_cover(prs, c)
     s_goal(prs, c)
     s_ringkasan(prs, c)
-    s_komposisi(prs, c)
-    s_pilar(prs, c)
-    s_mom(prs, c)
-    s_harian(prs, c)
-    s_top_hari(prs, c)
-    s_per_dim(prs, c)
-    s_status_detail(prs, c, "Pending", "UNIT TERTAHAN (PENDING)",
-                    "Pending adalah beban kerja yang harus segera diurai — makin lama tertahan, "
-                    "makin tinggi risiko komplain customer.", AMBER)
-    s_status_detail(prs, c, "Done", "PENYELESAIAN (DONE)",
-                    "Penyelesaian adalah indikator utama kapasitas cabang dan kecepatan teknisi.", GREEN_D)
-    s_status_detail(prs, c, "Cancel", "PEMBATALAN (CANCEL)",
-                    "Setiap pembatalan berpotensi menandakan persoalan di harga, waktu tunggu, "
-                    "ketersediaan sparepart, atau komunikasi.", RED)
-    s_penjualan(prs, c)
-    s_jual_tren(prs, c)
-    s_jual_kategori(prs, c)
-    s_voucher(prs, c)
-    s_bagi_hasil(prs, c)
-    s_struktur(prs, c)
+    s_pekanan(prs, c)
     s_foto(prs, c, "MEASURE ACTIVITY", "foto_measure")
     s_foto(prs, c, "AR", "foto_ar")
     s_improvement(prs, c)

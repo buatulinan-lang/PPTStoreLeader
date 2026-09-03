@@ -210,6 +210,52 @@ def delta(cur, prev):
     return (cur - prev) / prev * 100
 
 
+# ------------------------------------------------------------------ pekanan
+def pekanan(p, f=None):
+    """Perkembangan per pekan (Senin–Minggu): jumlah transaksi & omzet."""
+    if p is None or not len(p):
+        return None
+    d = p.copy()
+    d["_AWAL"] = d["TANGGAL"] - pd.to_timedelta(d["TANGGAL"].dt.dayofweek, unit="D")
+    trx = d.groupby("_AWAL").size().rename("TRANSAKSI")
+    tabel = trx.to_frame()
+    tabel["OMZET"] = 0.0
+    tabel["LABA"] = 0.0
+    if f is not None and len(f):
+        g = f.copy()
+        g["_AWAL"] = g["TANGGAL"] - pd.to_timedelta(g["TANGGAL"].dt.dayofweek, unit="D")
+        uang = g.groupby("_AWAL")[["OMZET", "LABA"]].sum()
+        tabel = tabel.join(uang, how="outer", rsuffix="_f")
+        tabel["OMZET"] = tabel["OMZET_f"].fillna(0) if "OMZET_f" in tabel else tabel["OMZET"]
+        tabel["LABA"] = tabel["LABA_f"].fillna(0) if "LABA_f" in tabel else tabel["LABA"]
+        tabel = tabel.drop(columns=[c for c in tabel.columns if c.endswith("_f")])
+        tabel["TRANSAKSI"] = tabel["TRANSAKSI"].fillna(0).astype(int)
+    tabel = tabel.sort_index()
+    if not len(tabel):
+        return None
+    tabel["AKHIR"] = tabel.index + pd.Timedelta(days=6)
+    tabel["LABEL"] = [_label_pekan(a, b) for a, b in zip(tabel.index, tabel["AKHIR"])]
+    tabel["D_TRX"] = tabel["TRANSAKSI"].pct_change() * 100
+    tabel["D_OMZET"] = tabel["OMZET"].pct_change() * 100
+
+    akhir = tabel.iloc[-1]
+    sebelum = tabel.iloc[-2] if len(tabel) > 1 else None
+    return dict(tabel=tabel, jumlah=len(tabel),
+                total_trx=int(tabel["TRANSAKSI"].sum()), total_omzet=float(tabel["OMZET"].sum()),
+                rata_trx=float(tabel["TRANSAKSI"].mean()), rata_omzet=float(tabel["OMZET"].mean()),
+                puncak_trx=tabel["TRANSAKSI"].idxmax(), puncak_omzet=tabel["OMZET"].idxmax(),
+                terakhir=akhir, sebelum=sebelum,
+                mulai=tabel.index[0], selesai=tabel["AKHIR"].iloc[-1],
+                ada_omzet=bool(tabel["OMZET"].sum()))
+
+
+def _label_pekan(a, b):
+    a, b = pd.Timestamp(a), pd.Timestamp(b)
+    if a.month == b.month:
+        return f"{a.day}–{b.day} {BULAN_S[a.month - 1]}"
+    return f"{a.day} {BULAN_S[a.month - 1]}–{b.day} {BULAN_S[b.month - 1]}"
+
+
 # ------------------------------------------------------------------ penjualan
 def penjualan(f):
     if f is None or not len(f):
