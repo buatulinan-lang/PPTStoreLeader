@@ -1,7 +1,7 @@
-# M-Flash Dashboard Builder — versi 3.8 (25 slide)
+# M-Flash Dashboard Builder — versi 4.0 (11 slide)
 
 Aplikasi untuk mengubah file mentah Accurate menjadi dashboard interaktif **dan** presentasi
-PowerPoint 25 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
+PowerPoint 11 slide yang mengikuti template standar weekly meeting M-Flash (latar, logo, warna,
 dan tata letak yang sama persis).
 
 ---
@@ -29,14 +29,14 @@ Syarat: Python 3.9 atau lebih baru.
 
 1. **Hentikan aplikasi lama** — tutup jendela terminal/CMD yang sedang menjalankan Streamlit
    (tekan `Ctrl + C`), lalu jalankan lagi dari folder hasil ekstrak yang baru.
-2. Pastikan sidebar bertuliskan **Versi 3.8 · 25 slide**. Kalau masih versi lama, berarti aplikasi
+2. Pastikan sidebar bertuliskan **Versi 4.0 · 11 slide**. Kalau masih versi lama, berarti aplikasi
    masih dijalankan dari folder lama.
 3. Setelah mengubah isian, klik **Buat PPTX** lagi — tombol unduh sengaja dikosongkan setiap kali
    ada perubahan supaya file lama tidak ikut terunduh.
-4. Halaman **cover** file PPT memuat tulisan `Dibuat otomatis dari dashboard v3.8` —
+4. Halaman **cover** file PPT memuat tulisan `Dibuat otomatis dari dashboard v4.0` —
    cara tercepat memastikan file berasal dari versi terbaru.
 5. Untuk memastikan lewat properti file: klik kanan file → *Properties/Get Info* → bagian
-   *Comments* tertulis `M-Flash Dashboard Builder v3.8 — 25 slide`.
+   *Comments* tertulis `M-Flash Dashboard Builder v4.0 — 11 slide`.
 
 ### Menjalankan di Streamlit Cloud
 
@@ -81,9 +81,8 @@ file yang terbaca — jadi penyebabnya terlihat tanpa perlu membuka log.
    - `rincian_faktur_penjualan_*.xlsx` → **penjualan** per hari/bulan, breakdown kategori, voucher, bagi hasil
 2. Atur filter: tahun, bulan, kategori penjualan, dan dimensi pembanding (cabang/teknisi/admin).
 3. Telusuri dashboard di tab yang tersedia.
-4. Isi tab **Slide manual**: 4 goal, tabel struktur organisasi, foto Measure Activity, foto AR,
-   foto + kesimpulan Improvement & Efficiency, foto To Do List, tabel Support Needs, dan tabel
-   komitmen.
+4. Isi tab **Slide manual**: 4 goal, foto Measure Activity, foto AR, foto + kesimpulan
+   Improvement & Efficiency, foto To Do List, tabel Support Needs, dan tabel komitmen.
 5. Buka tab **⬇️ Unduh PPT** → klik *Buat PPTX* → *Unduh PPTX*.
 
 **Format yang diterima:** `.xlsx`, `.xls`, `.xlsm`, `.csv`, `.tsv`, `.txt`, **`.csv.gz`**, `.zip`,
@@ -100,80 +99,38 @@ tanpa mengubah apa pun.
 
 ---
 
-## 3. Isi deck yang dihasilkan (25 slide)
+## 3. Isi deck yang dihasilkan (11 slide)
 
 | # | Slide | Sumber |
 |---|-------|--------|
 | 1 | Cover | otomatis + judul/penyaji |
 | 2 | Pencapaian Goal — 4 gauge: Gross Profit, Omset Aksesoris, Tingkat Kepuasan Pelanggan, Google Ulasan | input manual |
 | 3 | Ringkasan kinerja | pengiriman pesanan |
-| 4 | Komposisi status pengerjaan | pengiriman pesanan |
-| 5 | Kategori Pilar — omzet, laba kotor, margin & kontribusi | faktur penjualan |
-| 6 | Bulan berjalan vs bulan sebelumnya (dibandingkan setara) | pengiriman + faktur |
-| 7 | Rekap unit masuk harian | pengiriman pesanan |
-| 8 | Hari dengan unit masuk tertinggi | pengiriman pesanan |
-| 9 | Kinerja per cabang/teknisi | pengiriman pesanan |
-| 10–12 | Rincian Pending, Done, Cancel | pengiriman pesanan |
-| 13 | Penjualan — modal, omzet & laba | faktur penjualan |
-| 14 | Rekap penjualan harian & bulanan | faktur penjualan |
-| 15 | Penjualan per kategori (service HP, service laptop, penjualan HP, dll) | faktur penjualan |
-| 16 | Voucher | faktur penjualan |
-| 17 | Bagi hasil teknisi | faktur penjualan |
-| 18 | Struktur organisasi | tabel nama & jabatan |
-| 19 | Measure Activity | unggah foto |
-| 20 | AR | unggah foto |
-| 21 | Improvement & Efficiency | 4 foto + kesimpulan teks |
-| 22 | To Do List | unggah foto |
-| 23 | Support Needs — No, Divisi, Needs | tabel manual |
-| 24 | Komitmen — pencapaian, komitmen, target | input manual |
-| 25 | Penutup | otomatis |
+| 4 | **Perkembangan Pekanan — total transaksi & omzet per pekan** | pengiriman + faktur |
+| 5 | Measure Activity | unggah foto |
+| 6 | AR | unggah foto |
+| 7 | Improvement & Efficiency | 4 foto + kesimpulan teks |
+| 8 | To Do List | unggah foto |
+| 9 | Support Needs — No, Divisi, Needs | tabel manual |
+| 10 | Komitmen — pencapaian, komitmen, target | input manual |
+| 11 | Penutup | otomatis |
 
-### Kategori pilar
+### Perkembangan pekanan
 
-Slide ini membaca kolom pada file faktur yang namanya mengandung kata **PILAR**. Bila nama
-kolomnya berbeda, pilih kolomnya lewat **Kolom Kategori Pilar** di panel kiri aplikasi
-(atau `--kolom-pilar "NAMA KOLOM"` lewat baris perintah).
+Satu pekan dihitung **Senin–Minggu**. Rentangnya mengikuti filter bulan di panel kiri — pilih
+Juli dan Agustus untuk melihat perkembangan dua bulan itu.
 
-**Baris yang kolom pilarnya kosong tidak ikut dihitung** — omzet, modal, laba, margin, dan
-kontribusi semuanya hanya dari baris yang punya kategori pilar. Catatan kaki slide menyebutkan
-berapa baris yang ikut dihitung dari total baris faktur, supaya selisihnya jelas.
+Yang ditampilkan: total transaksi dan total omzet seluruh pekan, rata-rata per pekan, angka pekan
+terakhir beserta perubahannya terhadap pekan sebelumnya (hijau bila naik, merah bila turun), lalu
+dua grafik batang — jumlah transaksi per pekan dan omzet per pekan dalam juta rupiah.
 
-### Struktur organisasi
+Transaksi dihitung dari file pengiriman pesanan, omzet dari file faktur penjualan. Bila file
+faktur belum diunggah, grafik omzet diganti keterangan singkat. Pekan pertama dan terakhir bisa
+belum genap tujuh hari karena mengikuti rentang data yang ada — catatan ini juga tercetak di
+kaki slide.
 
-Cukup isi nama lengkap dan jabatan; bagan disusun otomatis berdasarkan kata pada kolom jabatan:
-
-```
-                     Ustadz Pembina Cabang
-                              |
-                        Store Leader
-                              |
-   ┌────────┬──────────┬──────┼───────┬─────────────┬──────┐
- Service Aksesoris Pengadaan Penyewaan Maintenance  ISP      (Supervisor)
-   |                    └─────────┴─────────────┴──────┘
-   |                              |
-   |                       Sales Corporate                   (tingkat 4)
-   |
- ADMIN · SALES · TEKNISI                                     (tingkat 5)
-```
-
-- Jabatan mengandung **"Ustadz"** atau **"Pembina"** → puncak bagan
-- **"Store Leader"** (atau Store Manager / Kepala Toko / Pimpinan) → di bawahnya
-- **"Supervisor …"** → berjajar sesuai urutan Service, Aksesoris, Pengadaan, Penyewaan, Maintenance, ISP
-- **"Sales Corporate"** → di bawah Supervisor Pengadaan, Penyewaan, Maintenance, dan ISP
-- jabatan lain (Admin, Sales, Teknisi, …) → di bawah Supervisor Service pada tingkat paling
-  bawah, **satu tingkat di bawah Sales Corporate**. Tiap jabatan jadi satu kartu berisi daftar
-  nama: kartu ADMIN memuat semua admin, kartu TEKNISI memuat semua teknisi, dan seterusnya.
-  Bila namanya banyak, daftar otomatis dipecah dua kolom agar tidak ada yang terpotong
-  (sudah diuji sampai 15 teknisi).
-
-Baris yang namanya dikosongkan tetap ditampilkan sebagai kotak jabatan kosong; hapus barisnya
-bila posisi itu memang tidak ada.
-
-**Template Excel.** Di tab *Slide manual* → *Struktur organisasi* ada tombol
-**Unduh template Excel**. File itu sudah berisi 22 baris jabatan baku (termasuk 3 Admin, 3 Sales, dan 7 Teknisi), daftar pilihan jabatan,
-dan sheet PETUNJUK. Isi kolom NAMA LENGKAP, simpan, lalu unggah kembali di kolom sebelahnya —
-tabel di aplikasi langsung terisi. Lewat baris perintah gunakan
-`--struktur TEMPLATE_STRUKTUR_ORGANISASI.xlsx`.
+Dashboard punya tab **Perkembangan Pekanan** sendiri dengan grafik gabungan (batang transaksi +
+garis omzet) dan tabel lengkap berikut persentase perubahan tiap pekan.
 
 ## 4. Aturan perhitungan
 
@@ -207,13 +164,6 @@ python buat_ppt.py "rincian_pengiriman_pesanan.xlsx" "rincian_faktur_penjualan.x
     {"nama": "GROSS PROFIT", "nilai": 84.31, "ket": ""},
     {"nama": "OMSET AKSESORIS", "nilai": 59.5, "ket": ""},
     {"nama": "TINGKAT KEPUASAN PELANGGAN", "nilai": 124.0, "ket": ""}
-  ],
-  "struktur": [
-    {"nama": "Nama Ustadz", "jabatan": "Ustadz Pembina Cabang"},
-    {"nama": "Nama Store Leader", "jabatan": "Store Leader"},
-    {"nama": "Nama Supervisor", "jabatan": "Supervisor"},
-    {"nama": "Nama Sales Corporate", "jabatan": "Sales Corporate"},
-    {"nama": "Nama Teknisi", "jabatan": "Teknisi"}
   ],
   "komitmen": [{"pencapaian": "", "komitmen": "", "target": ""}],
   "foto_measure": ["foto/measure1.jpg"],

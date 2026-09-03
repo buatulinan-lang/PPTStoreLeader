@@ -21,56 +21,6 @@
       "ket": ""
     }
   ],
-  "struktur": [
-    {
-      "nama": "",
-      "jabatan": "Ustadz Pembina Cabang"
-    },
-    {
-      "nama": "",
-      "jabatan": "Store Leader"
-    },
-    {
-      "nama": "",
-      "jabatan": "Supervisor Service"
-    },
-    {
-      "nama": "",
-      "jabatan": "Supervisor Aksesoris"
-    },
-    {
-      "nama": "",
-      "jabatan": "Supervisor Pengadaan"
-    },
-    {
-      "nama": "",
-      "jabatan": "Supervisor Penyewaan"
-    },
-    {
-      "nama": "",
-      "jabatan": "Supervisor Maintenance"
-    },
-    {
-      "nama": "",
-      "jabatan": "Supervisor ISP"
-    },
-    {
-      "nama": "",
-      "jabatan": "Admin"
-    },
-    {
-      "nama": "",
-      "jabatan": "Sales"
-    },
-    {
-      "nama": "",
-      "jabatan": "Teknisi"
-    },
-    {
-      "nama": "",
-      "jabatan": "Sales Corporate"
-    }
-  ],
   "komitmen": [
     {
       "pencapaian": "",
@@ -78,6 +28,15 @@
       "target": ""
     }
   ],
+  "support": [
+    {
+      "divisi": "",
+      "needs": ""
+    }
+  ],
+  "teks_improvement": "",
   "foto_measure": [],
-  "foto_ar": []
+  "foto_ar": [],
+  "foto_improvement": [],
+  "foto_todo": []
 }

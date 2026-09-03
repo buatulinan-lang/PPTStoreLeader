@@ -9,7 +9,7 @@ import sys
 AKAR = os.path.dirname(os.path.abspath(__file__))
 WAJIB_FILE = ["app.py", "requirements.txt", "mflash/__init__.py", "mflash/loader.py",
               "mflash/metrics.py", "mflash/context.py", "mflash/charts.py", "mflash/theme.py",
-              "mflash/deck.py", "mflash/template.py"]
+              "mflash/deck.py"]
 DISARANKAN = ["assets/bg.jpg", "assets/logo_mflash.png", "assets/logo_madinah.png"]
 PUSTAKA = ["streamlit", "pandas", "numpy", "openpyxl", "pptx", "plotly", "PIL"]
 
@@ -39,7 +39,7 @@ for m in PUSTAKA:
 print("\nUji impor paket inti:")
 sys.path.insert(0, AKAR)
 try:
-    from mflash import loader, metrics, context, deck, template  # noqa: F401
+    from mflash import loader, metrics, context, deck  # noqa: F401
     print("  OK    semua modul mflash terbaca")
 except Exception as e:  # noqa: BLE001
     gagal = True

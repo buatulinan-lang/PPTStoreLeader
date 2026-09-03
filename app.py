@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 # --- impor paket inti dengan diagnosa yang jelas bila gagal ---------------
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
-    from mflash import loader, metrics as M, context as CTX, deck, template as TPL
+    from mflash import loader, metrics as M, context as CTX, deck
 except Exception as _e:  # noqa: BLE001
     import traceback
     st.set_page_config(page_title="M-Flash Dashboard Builder", page_icon="📊", layout="wide")
@@ -41,8 +41,8 @@ except Exception as _e:  # noqa: BLE001
     st.stop()
 from mflash.metrics import n, pct, rp, tgl, periode_label
 
-VERSI = "3.8"
-JUMLAH_SLIDE = 25
+VERSI = "4.0"
+JUMLAH_SLIDE = 11
 
 st.set_page_config(page_title=f"M-Flash Dashboard Builder v{VERSI}", page_icon="📊", layout="wide")
 
@@ -96,7 +96,7 @@ def _siapkan(kunci, jenis, _bagian):
 
 
 st.sidebar.title("📊 M-Flash Dashboard")
-st.sidebar.caption(f"Versi {VERSI} · {JUMLAH_SLIDE} slide · struktur organisasi 4 tingkat")
+st.sidebar.caption(f"Versi {VERSI} · {JUMLAH_SLIDE} slide · perkembangan pekanan")
 
 up = st.sidebar.file_uploader(
     "File mentah (boleh beberapa sekaligus)", type=JENIS_BERKAS, accept_multiple_files=True,
@@ -182,14 +182,10 @@ voucher_kata = st.sidebar.text_input("Kata kunci voucher", "VOUCHER")
 flat = st.sidebar.number_input("Pembanding bagi hasil flat (%)", 0.0, 100.0, 30.0, 1.0)
 
 GOAL_DEFAULT = ["GROSS PROFIT", "OMSET AKSESORIS", "TINGKAT KEPUASAN PELANGGAN", "GOOGLE ULASAN"]
-JABATAN_DEFAULT = (["Ustadz Pembina Cabang", "Store Leader",
-                    "Supervisor Service", "Supervisor Aksesoris", "Supervisor Pengadaan",
-                    "Supervisor Penyewaan", "Supervisor Maintenance", "Supervisor ISP"]
-                   + ["Admin"] * 3 + ["Sales"] * 3 + ["Teknisi"] * 7 + ["Sales Corporate"])
+
 
 man = st.session_state.setdefault("manual", {
     "goals": [{"nama": g, "nilai": 0.0, "ket": ""} for g in GOAL_DEFAULT],
-    "struktur": [{"nama": "", "jabatan": j} for j in JABATAN_DEFAULT],
     "komitmen": [{"pencapaian": "", "komitmen": "", "target": ""} for _ in range(4)],
     "foto_measure": [],
     "foto_ar": [],
@@ -205,17 +201,15 @@ if st.session_state.get("versi_manual") != VERSI:
     st.session_state.pop("pptx", None)
     man = st.session_state.setdefault("manual", {
         "goals": [{"nama": g, "nilai": 0.0, "ket": ""} for g in GOAL_DEFAULT],
-        "struktur": [{"nama": "", "jabatan": j} for j in JABATAN_DEFAULT],
-        "komitmen": [{"pencapaian": "", "komitmen": "", "target": ""} for _ in range(4)],
+            "komitmen": [{"pencapaian": "", "komitmen": "", "target": ""} for _ in range(4)],
         "foto_measure": [], "foto_ar": [], "foto_improvement": [], "foto_todo": [],
         "teks_improvement": "",
         "support": [{"divisi": "", "needs": ""} for _ in range(4)],
-    })
+        })
 for _k in ("foto_measure", "foto_ar", "foto_improvement", "foto_todo"):
     man.setdefault(_k, [])
 man.setdefault("teks_improvement", "")
 man.setdefault("support", [{"divisi": "", "needs": ""} for _ in range(4)])
-man.setdefault("struktur", [{"nama": "", "jabatan": j} for j in JABATAN_DEFAULT])
 man["komitmen"] = [r if set(r) >= {"pencapaian", "komitmen", "target"}
                    else {"pencapaian": "", "komitmen": "", "target": ""}
                    for r in man.get("komitmen", [])] or \
@@ -241,8 +235,9 @@ k[2].metric("BATAL (CANCEL)", n(r["cancel"]), pct(r["p_cancel"]))
 k[3].metric("PENDING", n(r["pending"]), pct(r["p_pending"]))
 k[4].metric("RATA-RATA / HARI", n(r["rata_hari"], 1))
 
-tabs = st.tabs(["Ringkasan", "Harian & Bulanan", "Status", f"Per {c['dim_label'].title()}",
-                "Penjualan", "Voucher & Bagi Hasil", "Slide manual", "⬇️ Unduh PPT"])
+tabs = st.tabs(["Ringkasan", "Perkembangan Pekanan", "Harian & Bulanan", "Status",
+                f"Per {c['dim_label'].title()}", "Penjualan", "Voucher & Bagi Hasil",
+                "Slide manual", "⬇️ Unduh PPT"])
 
 # --- ringkasan
 with tabs[0]:
@@ -260,8 +255,45 @@ with tabs[0]:
         b.markdown(f"- {x}")
     st.dataframe(pbs, use_container_width=True)
 
-# --- harian
+# --- perkembangan pekanan
 with tabs[1]:
+    pk = c.get("pekanan")
+    if not pk:
+        st.info("Tidak ada data pada filter ini.")
+    else:
+        t = pk["tabel"]
+        akhir, sebelum = pk["terakhir"], pk["sebelum"]
+        kk = st.columns(5)
+        kk[0].metric("TOTAL TRANSAKSI", n(pk["total_trx"]))
+        kk[1].metric("TOTAL OMZET", rp(pk["total_omzet"]))
+        kk[2].metric("RATA-RATA / PEKAN", n(pk["rata_trx"], 1), f"omzet {rp(pk['rata_omzet'])}")
+        d_trx = M.delta(akhir["TRANSAKSI"], sebelum["TRANSAKSI"]) if sebelum is not None else None
+        d_omz = M.delta(akhir["OMZET"], sebelum["OMZET"]) if sebelum is not None else None
+        kk[3].metric("TRANSAKSI PEKAN TERAKHIR", n(akhir["TRANSAKSI"]),
+                     None if d_trx is None else f"{'+' if d_trx >= 0 else ''}{pct(d_trx)}")
+        kk[4].metric("OMZET PEKAN TERAKHIR", rp(akhir["OMZET"]),
+                     None if d_omz is None else f"{'+' if d_omz >= 0 else ''}{pct(d_omz)}")
+
+        fig = go.Figure()
+        fig.add_bar(x=list(t["LABEL"]), y=t["TRANSAKSI"], name="Transaksi", marker_color=NAVY)
+        fig.add_scatter(x=list(t["LABEL"]), y=t["OMZET"] / 1e6, name="Omzet (jt)", yaxis="y2",
+                        line=dict(color=GREEN, width=3), mode="lines+markers")
+        fig.update_layout(yaxis2=dict(overlaying="y", side="right", showgrid=False,
+                                      title="Omzet (juta)"))
+        st.plotly_chart(px_style(fig, 420), use_container_width=True)
+
+        st.dataframe(pd.DataFrame({
+            "PEKAN": t["LABEL"],
+            "TRANSAKSI": t["TRANSAKSI"].map(n),
+            "Δ TRANSAKSI": t["D_TRX"].map(lambda v: "-" if pd.isna(v) else f"{'+' if v >= 0 else ''}{pct(v)}"),
+            "OMZET": t["OMZET"].map(rp),
+            "Δ OMZET": t["D_OMZET"].map(lambda v: "-" if pd.isna(v) else f"{'+' if v >= 0 else ''}{pct(v)}"),
+        }), use_container_width=True, hide_index=True)
+        st.caption("Pekan dihitung Senin–Minggu. Pekan pertama dan terakhir bisa belum genap "
+                   "tujuh hari karena mengikuti rentang data yang dipilih.")
+
+# --- harian
+with tabs[2]:
     h = c["harian"]
     fig = px.line(x=h.index, y=h.values, labels={"x": "Tanggal", "y": "Unit masuk"})
     fig.update_traces(line_color=NAVY)
@@ -298,7 +330,7 @@ with tabs[1]:
         st.plotly_chart(px_style(f3, 320), use_container_width=True)
 
 # --- status
-with tabs[2]:
+with tabs[3]:
     vals = [(k_, r[v], r[pv]) for k_, v, pv in [("Done", "done", "p_done"), ("Cancel", "cancel", "p_cancel"),
                                                 ("Pending", "pending", "p_pending"), ("Lainnya", "lain", "p_lain")]]
     vals = [v for v in vals if v[1] > 0]
@@ -321,7 +353,7 @@ with tabs[2]:
         col.plotly_chart(px_style(f4, 380, False), use_container_width=True)
 
 # --- per dimensi
-with tabs[3]:
+with tabs[4]:
     g = c["per_dim"]
     if len(g):
         st.dataframe(g.assign(**{"% DONE": g["P_DONE"].map(lambda v: pct(v)),
@@ -340,7 +372,7 @@ with tabs[3]:
         st.info("Tidak ada dimensi pembanding pada data ini.")
 
 # --- penjualan
-with tabs[4]:
+with tabs[5]:
     j = c["jual"]
     if not j:
         st.info("Unggah file **rincian faktur penjualan** untuk mengisi bagian ini.")
@@ -395,7 +427,7 @@ with tabs[4]:
                      use_container_width=True)
 
 # --- voucher & bagi hasil
-with tabs[5]:
+with tabs[6]:
     v, bg = c["voucher"], c["bagi"]
     a, b = st.columns(2)
     a.subheader(f"Voucher ({voucher_kata})")
@@ -421,7 +453,7 @@ with tabs[5]:
         b.info("Data jasa tidak tersedia.")
 
 # --- slide manual
-with tabs[6]:
+with tabs[7]:
     st.subheader("Slide 2 — Pencapaian Goal")
     st.caption("Isi pencapaian dalam persen. Di bawah 85% tampil merah, 85–100% kuning, di atas 100% hijau.")
     gcols = st.columns(4)
@@ -433,37 +465,6 @@ with tabs[6]:
             man["goals"][i]["ket"] = st.text_input(f"Keterangan {i+1}", man["goals"][i]["ket"], key=f"gk{i}")
 
     st.divider()
-    st.subheader("Slide Struktur Organisasi")
-    tcol1, tcol2 = st.columns([1, 2])
-    tcol1.download_button("📄 Unduh template Excel", TPL.buat_template_struktur(),
-                          file_name="TEMPLATE_STRUKTUR_ORGANISASI.xlsx",
-                          mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                          help="Isi nama & jabatan di Excel, lalu unggah kembali di sebelah kanan.")
-    fs = tcol2.file_uploader("Unggah template yang sudah diisi", type=["xlsx", "xls", "csv"],
-                             key="up_struktur")
-    if fs is not None:
-        try:
-            baris = TPL.baca_struktur(fs)
-        except Exception as e:
-            baris = []
-            st.error(f"File tidak terbaca: {e}")
-        if baris:
-            man["struktur"] = baris
-            st.success(f"{len(baris)} baris jabatan dimuat dari {fs.name}.")
-        elif not st.session_state.get("_str_warn"):
-            st.warning("Tidak ada baris berisi kolom JABATAN yang terbaca. "
-                       "Pakai template yang diunduh di sebelah kiri.")
-    st.caption("Urutan otomatis: Ustadz Pembina Cabang → Store Leader → para Supervisor "
-               "(Service, Aksesoris, Pengadaan, Penyewaan, Maintenance, ISP). Admin, Sales, dan "
-               "Teknisi masuk di bawah Supervisor Service — dikelompokkan per jabatan dalam satu "
-               "kartu berisi daftar nama, jadi tidak ada SDM yang hilang. Sales Corporate berada "
-               "di bawah Supervisor Pengadaan, Penyewaan, Maintenance, dan ISP.")
-    man["struktur"] = st.data_editor(
-        pd.DataFrame(man["struktur"]), num_rows="dynamic", use_container_width=True, key="str_ed",
-        column_config={"nama": st.column_config.TextColumn("Nama lengkap", width="large"),
-                       "jabatan": st.column_config.TextColumn("Jabatan", width="medium")}
-    ).to_dict("records")
-
     def unggah_foto(judul, kunci, label=None):
         st.subheader(judul)
         berkas = st.file_uploader(label or "Unggah foto (maksimal 4)",
@@ -511,10 +512,10 @@ with tabs[6]:
     ).to_dict("records")
 
 # --- unduh
-with tabs[7]:
+with tabs[8]:
     st.subheader("Unduh presentasi")
     tanda = repr([VERSI, flt, judul, penyaji, voucher_kata, flat, kolom_pilar,
-                  man["goals"], man["struktur"], man["komitmen"], man["support"],
+                  man["goals"], man["komitmen"], man["support"],
                   man.get("teks_improvement", ""),
                   [len(man.get(k, [])) for k in ("foto_measure", "foto_ar",
                                                  "foto_improvement", "foto_todo")]])
